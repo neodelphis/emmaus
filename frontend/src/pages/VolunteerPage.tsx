@@ -110,6 +110,8 @@ export function VolunteerPage() {
     setLoading(true)
     setLoadError(null)
     setInvalidLink(false)
+    setAccess(null)
+    setSelected(null)
     try {
       const data = await api.getVolunteerAccess(token)
       setAccess(data)
