@@ -39,6 +39,7 @@ services:
       SMTP_FROM: ${SMTP_FROM:-Emmaus <ne-pas-repondre@emmaus.local>}
       ADMIN_EMAIL: ${ADMIN_EMAIL:?ADMIN_EMAIL manquant dans .env}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD manquant dans .env}
+      ADMIN_GENDER: ${ADMIN_GENDER:-}
       COOKIE_SECURE: "false"
     ports:
       - "8000:8000"

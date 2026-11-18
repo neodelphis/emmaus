@@ -98,7 +98,9 @@ export function AdminLayout() {
           ))}
         </nav>
         <div className="mt-6 rounded-xl bg-white/5 p-3 ring-1 ring-white/10">
-          <p className="truncate text-xs text-brand-100/70">Connecté·e</p>
+          <p className="truncate text-xs text-brand-100/70">
+            {user?.gender === 'femme' ? 'Connectée' : 'Connecté'}
+          </p>
           <p className="mt-0.5 truncate text-sm font-medium text-white">{user?.email}</p>
           <button
             type="button"

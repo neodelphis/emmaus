@@ -82,14 +82,23 @@ def test_password_reset_rejects_unknown_token(client) -> None:
 def test_create_administrator_and_duplicate(client, admin) -> None:
     response = client.post(
         "/api/admin/auth/administrators",
-        json={"email": "seconde@emmaus.fr", "password": "SecondCompte-123!"},
+        json={
+            "email": "seconde@emmaus.fr",
+            "password": "SecondCompte-123!",
+            "gender": "femme",
+        },
     )
     assert response.status_code == 201
     assert response.json()["email"] == "seconde@emmaus.fr"
+    assert response.json()["gender"] == "femme"
 
     response = client.post(
         "/api/admin/auth/administrators",
-        json={"email": "SECONDE@emmaus.fr", "password": "SecondCompte-123!"},
+        json={
+            "email": "SECONDE@emmaus.fr",
+            "password": "SecondCompte-123!",
+            "gender": "homme",
+        },
     )
     assert response.status_code == 409
 
@@ -98,11 +107,30 @@ def test_create_administrator_and_duplicate(client, admin) -> None:
     assert len(response.json()) == 2
 
     assert login(client, "seconde@emmaus.fr", "SecondCompte-123!").status_code == 200
+    assert client.get("/api/admin/auth/me").json()["gender"] == "femme"
 
 
 def test_create_administrator_requires_strong_password(client, admin) -> None:
     response = client.post(
         "/api/admin/auth/administrators",
-        json={"email": "faible@emmaus.fr", "password": "court"},
+        json={"email": "faible@emmaus.fr", "password": "court", "gender": "homme"},
     )
+    assert response.status_code == 422
+
+
+def test_create_administrator_requires_gender(client, admin) -> None:
+    response = client.post(
+        "/api/admin/auth/administrators",
+        json={"email": "sans-genre@emmaus.fr", "password": "MotDePasseTest-123!"},
+    )
+    assert response.status_code == 422
+
+
+def test_administrator_gender_can_be_updated(client, admin) -> None:
+    response = client.patch("/api/admin/auth/me", json={"gender": "femme"})
+    assert response.status_code == 200
+    assert response.json()["gender"] == "femme"
+    assert client.get("/api/admin/auth/me").json()["gender"] == "femme"
+
+    response = client.patch("/api/admin/auth/me", json={"gender": "autre"})
     assert response.status_code == 422

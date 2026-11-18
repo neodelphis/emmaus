@@ -80,6 +80,12 @@ export const api = {
   me() {
     return request<AdminUser>('/api/admin/auth/me')
   },
+  updateMe(gender: 'homme' | 'femme') {
+    return request<AdminUser>('/api/admin/auth/me', {
+      method: 'PATCH',
+      body: JSON.stringify({ gender }),
+    })
+  },
   forgotPassword(email: string) {
     return request<{ message: string }>(
       '/api/admin/auth/forgot-password',
@@ -95,10 +101,14 @@ export const api = {
   listAdministrators() {
     return request<AdminUser[]>('/api/admin/auth/administrators')
   },
-  createAdministrator(email: string, password: string) {
+  createAdministrator(
+    email: string,
+    password: string,
+    gender: 'homme' | 'femme',
+  ) {
     return request<AdminUser>(
       '/api/admin/auth/administrators',
-      json({ email, password }),
+      json({ email, password, gender }),
     )
   },
 

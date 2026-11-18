@@ -39,6 +39,7 @@ export interface VolunteerAccess {
 export interface AdminUser {
   id: string
   email: string
+  gender: 'homme' | 'femme' | null
 }
 
 export interface Volunteer {

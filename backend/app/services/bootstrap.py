@@ -35,6 +35,18 @@ def ensure_first_admin(session: Session, settings: Settings) -> None:
     """Crée le premier administrateur uniquement si aucun compte n'existe."""
     admin_count = session.scalar(select(func.count()).select_from(AdminUser)) or 0
     if admin_count > 0:
+        # Rattrapage pour les comptes créés avant l'ajout du genre : le compte
+        # initial renseigné dans .env reçoit son genre au démarrage, sans
+        # écraser une valeur déjà choisie dans l'interface.
+        if settings.admin_email is not None and settings.admin_gender is not None:
+            existing = session.scalar(
+                select(AdminUser).where(
+                    AdminUser.email == str(settings.admin_email).lower()
+                )
+            )
+            if existing is not None and existing.gender is None:
+                existing.gender = settings.admin_gender
+                session.commit()
         return
     if not settings.seed_admin:
         return
@@ -50,6 +62,7 @@ def ensure_first_admin(session: Session, settings: Settings) -> None:
         AdminUser(
             email=str(settings.admin_email).lower(),
             password_hash=hash_password(settings.admin_password.get_secret_value()),
+            gender=settings.admin_gender,
         )
     )
     session.commit()

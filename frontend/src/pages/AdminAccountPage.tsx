@@ -14,13 +14,13 @@ import { useAuth } from '../auth'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
-import { Input } from '../components/ui/Input'
+import { Input, Select } from '../components/ui/Input'
 import { PageHeader } from '../components/ui/PageHeader'
 import { useToast } from '../toast'
 import type { AdminUser } from '../types'
 
 export function AdminAccountPage() {
-  const { user, signOut } = useAuth()
+  const { user, signIn, signOut } = useAuth()
   const toast = useToast()
   const [admins, setAdmins] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
@@ -28,8 +28,13 @@ export function AdminAccountPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
+  const [newGender, setNewGender] = useState<'homme' | 'femme' | ''>('')
   const [formError, setFormError] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
+  const [gender, setGender] = useState<'homme' | 'femme' | ''>(
+    user?.gender ?? '',
+  )
+  const [savingGender, setSavingGender] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -51,6 +56,31 @@ export function AdminAccountPage() {
     void load()
   }, [load])
 
+  useEffect(() => {
+    setGender(user?.gender ?? '')
+  }, [user?.gender])
+
+  const saveGender = async () => {
+    if (!gender) {
+      toast.error('Sélectionnez un genre.')
+      return
+    }
+    setSavingGender(true)
+    try {
+      const updated = await api.updateMe(gender)
+      signIn(updated)
+      toast.success('Le genre du compte a été mis à jour.')
+    } catch (caught) {
+      toast.error(
+        caught instanceof ApiError
+          ? caught.message
+          : 'Le genre du compte n’a pas pu être enregistré.',
+      )
+    } finally {
+      setSavingGender(false)
+    }
+  }
+
   const create = async (event: FormEvent) => {
     event.preventDefault()
     setFormError(null)
@@ -62,13 +92,18 @@ export function AdminAccountPage() {
       setFormError('Les deux mots de passe ne correspondent pas.')
       return
     }
+    if (!newGender) {
+      setFormError('Le genre est obligatoire.')
+      return
+    }
     setCreating(true)
     try {
-      await api.createAdministrator(email.trim(), password)
+      await api.createAdministrator(email.trim(), password, newGender)
       toast.success('Le compte administrateur a été créé.')
       setEmail('')
       setPassword('')
       setConfirmation('')
+      setNewGender('')
       await load()
     } catch (caught) {
       setFormError(
@@ -95,7 +130,10 @@ export function AdminAccountPage() {
             <div>
               <h2 className="font-semibold text-stone-900">Mon compte</h2>
               <p className="mt-0.5 text-sm text-stone-500">
-                Vous êtes connecté·e avec un compte administrateur.
+                {user?.gender === 'femme'
+                  ? 'Vous êtes connectée'
+                  : 'Vous êtes connecté'}{' '}
+                avec un compte administrateur.
               </p>
             </div>
           </div>
@@ -115,6 +153,41 @@ export function AdminAccountPage() {
               </dd>
             </div>
           </dl>
+
+          <div className="mt-4 rounded-xl bg-stone-50 px-3.5 py-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div className="w-full sm:max-w-[12rem]">
+                <label htmlFor="account-gender" className="field-label">
+                  Genre
+                </label>
+                <select
+                  id="account-gender"
+                  className="input bg-white"
+                  value={gender}
+                  onChange={(event) =>
+                    setGender(event.target.value as 'homme' | 'femme' | '')
+                  }
+                  disabled={savingGender}
+                >
+                  <option value="">Non renseigné</option>
+                  <option value="homme">Homme</option>
+                  <option value="femme">Femme</option>
+                </select>
+              </div>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => void saveGender()}
+                loading={savingGender}
+                disabled={!gender || gender === user?.gender}
+              >
+                Enregistrer
+              </Button>
+            </div>
+            <p className="mt-1 text-[11px] text-stone-400">
+              Utilisé pour l’affichage « Connecté » / « Connectée ».
+            </p>
+          </div>
 
           <div className="mt-5 flex flex-col gap-2 sm:flex-row">
             <Link
@@ -161,6 +234,18 @@ export function AdminAccountPage() {
               onChange={(event) => setEmail(event.target.value)}
               placeholder="collegue@exemple.fr"
             />
+            <Select
+              label="Genre"
+              required
+              value={newGender}
+              onChange={(event) =>
+                setNewGender(event.target.value as 'homme' | 'femme' | '')
+              }
+            >
+              <option value="">Sélectionner…</option>
+              <option value="homme">Homme</option>
+              <option value="femme">Femme</option>
+            </Select>
             <div className="grid gap-3 sm:grid-cols-2">
               <Input
                 label="Mot de passe"
