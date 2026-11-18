@@ -20,6 +20,7 @@ import {
 } from '../components/admin/WeekPlanning'
 import { useToast } from '../toast'
 import { cn } from '../lib/cn'
+import { MEAL_LABEL } from '../lib/meal'
 import {
   WEEKDAYS,
   addDays,
@@ -404,7 +405,7 @@ export function AdminWeekPage() {
                   Les bénévoles sont listés par demi-journée. Un créneau qui chevauche
                   13:00 apparaît dans les deux listes avec ses horaires réels. Les
                   journées entières apparaissent sur fond vert dans les deux listes et
-                  sont inscrites au repas de 12:00–13:00 par défaut ; le retrait du repas
+                  sont inscrites au repas de {MEAL_LABEL} par défaut ; le retrait du repas
                   demande une confirmation. Les bénévoles indisponibles ne sont pas
                   listés : leur nombre est indiqué dans l'en-tête de chaque jour.
                 </p>

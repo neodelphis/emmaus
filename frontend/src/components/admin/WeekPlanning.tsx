@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Plus, Sun, UtensilsCrossed, X } from 'lucide-react'
 import { cn } from '../../lib/cn'
+import { MEAL_LABEL } from '../../lib/meal'
 import { formatShortDate, minutesOf, weekdayLabel } from '../../lib/dates'
 import type { OpeningHours } from '../../types'
 
@@ -229,7 +230,7 @@ function MealSection({
             {included.length}
           </span>
         </p>
-        <span className="text-[9px] text-amber-700/70">12:00 – 13:00</span>
+        <span className="text-[9px] text-amber-700/70">{MEAL_LABEL}</span>
       </div>
 
       <div className="mt-1.5 flex flex-col gap-1">
