@@ -72,7 +72,14 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
     retraits ; l'absence de ligne vaut inscription. L'administration peut retirer un
     bénévole avec une confirmation et le réinscrire. Les bénévoles ayant seulement un
     créneau horaire ne sont pas concernés par ce repas.
-14. **Planning par demi-journées.** La vue administration présente une carte par jour,
+14. **Genre des administrateurs.** Un champ `gender` (`homme` ou `femme`, nullable pour
+    les comptes historiques) est stocké sur `admin_users`. Il est requis à la création
+    d’un compte et modifiable dans la page Compte via `PATCH /api/admin/auth/me`. Le
+    libellé de la barre latérale suit ce genre. Le compte initial reçoit `ADMIN_GENDER`
+    au démarrage s’il n’a pas encore de genre. La colonne est ajoutée aux bases
+    existantes par un `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` idempotent, dans
+    l’attente d’une migration Alembic.
+15. **Planning par demi-journées.** La vue administration présente une carte par jour,
     avec deux listes : **Matin** (avant 13:00) et **Après-midi** (dès 13:00). Chaque
     bénévole y figure avec ses horaires réels, sans positionnement horaire, afin de rester
     lisible avec une quinzaine de personnes par créneau. Un créneau qui chevauche 13:00
@@ -101,6 +108,9 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
   du lien désactivé ; les liens sont affichés à l'exécution et ne sont pas versionnés.
 - Repas : tests API sur l'inscription par défaut, le retrait, la réinscription et le refus
   pour un jour qui n'est pas « toute la journée ».
+- Genre administrateur : tests API sur la création avec genre, la modification via `PATCH
+  /me`, le refus d'une valeur inconnue et l'affichage conditionnel « Connecté » /
+  « Connectée » vérifié dans Chromium.
 - Vérification de l'administration dans un Firefox sans extension (Playwright) : aucun
   message dans la console, un seul script externe chargé, aucune requête `file://`.
   Les avertissements CSP `sandbox eval` observés dans un Firefox équipé d'extensions

@@ -17,6 +17,7 @@ from app.schemas import (
     LoginIn,
     MessageOut,
     ResetPasswordIn,
+    UpdateMeIn,
 )
 from app.security import (
     DUMMY_PASSWORD_HASH,
@@ -83,6 +84,18 @@ def logout() -> Response:
 
 @router.get("/me", response_model=AdminOut)
 def me(admin: AdminUser = Depends(require_admin)) -> AdminOut:
+    return AdminOut.model_validate(admin)
+
+
+@router.patch("/me", response_model=AdminOut)
+def update_me(
+    payload: UpdateMeIn,
+    admin: AdminUser = Depends(require_admin),
+    session: Session = Depends(get_db),
+) -> AdminOut:
+    admin.gender = payload.gender
+    session.commit()
+    session.refresh(admin)
     return AdminOut.model_validate(admin)
 
 
@@ -183,7 +196,11 @@ def create_administrator(
             status_code=status.HTTP_409_CONFLICT,
             detail="Un compte administrateur existe déjà avec cette adresse.",
         )
-    admin = AdminUser(email=email, password_hash=hash_password(payload.password))
+    admin = AdminUser(
+        email=email,
+        password_hash=hash_password(payload.password),
+        gender=payload.gender,
+    )
     session.add(admin)
     session.commit()
     session.refresh(admin)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import EmailStr, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -23,6 +24,7 @@ class Settings(BaseSettings):
 
     admin_email: EmailStr | None = None
     admin_password: SecretStr | None = None
+    admin_gender: Literal["homme", "femme"] | None = None
     seed_admin: bool = True
 
     smtp_host: str = "mailhog"
@@ -34,6 +36,13 @@ class Settings(BaseSettings):
     cookie_secure: bool = False
     reset_token_minutes: int = 60
     password_min_length: int = Field(default=12, ge=8)
+
+    @field_validator("admin_gender", mode="before")
+    @classmethod
+    def _blank_gender_to_none(cls, value: object) -> object:
+        if value == "":
+            return None
+        return value
 
     @field_validator("frontend_url")
     @classmethod

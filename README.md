@@ -40,6 +40,8 @@ Renseignez dans `.env` :
 - `ADMIN_EMAIL` et `ADMIN_PASSWORD` : identifiants du premier administrateur, créé au
   premier démarrage si aucun compte n'existe encore. Le mot de passe doit contenir au
   moins 12 caractères ;
+- `ADMIN_GENDER` : `homme` ou `femme`, utilisé pour le libellé « Connecté » ou
+  « Connectée » du premier compte ;
 - éventuellement `FRONTEND_URL` (par défaut `http://localhost:8080`).
 
 Puis :
@@ -175,6 +177,9 @@ Il lit les identifiants dans `.env` et ne doit être utilisé qu'en local.
   n'apparaissent ni dans les journaux d'accès du serveur ni dans les référents.
 - Les routes d'administration vérifient l'authentification côté serveur ; l'accès bénévole
   ne permet de lire et modifier que les données du bénévole associé au jeton.
+- Le genre du compte administrateur (`homme` ou `femme`) est stocké sur le compte, requis
+  à la création et modifiable dans la page Compte ; il détermine le libellé « Connecté »
+  ou « Connectée ».
 - Les journaux d'accès Uvicorn sont désactivés dans Compose ; les courriels et erreurs ne
   contiennent jamais de mot de passe ni de jeton.
 

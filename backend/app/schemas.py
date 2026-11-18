@@ -16,6 +16,7 @@ class AdminOut(BaseModel):
 
     id: UUID
     email: EmailStr
+    gender: Literal["homme", "femme"] | None = None
 
 
 class LoginIn(BaseModel):
@@ -35,6 +36,11 @@ class ResetPasswordIn(BaseModel):
 class CreateAdminIn(BaseModel):
     email: EmailStr
     password: str = Field(min_length=12, max_length=256)
+    gender: Literal["homme", "femme"]
+
+
+class UpdateMeIn(BaseModel):
+    gender: Literal["homme", "femme"]
 
 
 class OpeningHoursOut(BaseModel):

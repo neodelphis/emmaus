@@ -23,12 +23,19 @@ from app.database import Base, utcnow
 
 class AdminUser(Base):
     __tablename__ = "admin_users"
+    __table_args__ = (
+        CheckConstraint(
+            "gender IS NULL OR gender IN ('homme', 'femme')",
+            name="admin_gender_allowed",
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255))
+    gender: Mapped[str | None] = mapped_column(String(8))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, nullable=False
     )

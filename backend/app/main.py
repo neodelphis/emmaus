@@ -36,6 +36,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             bind=engine, expire_on_commit=False, autoflush=False
         )
         Base.metadata.create_all(engine)
+        # Migration légère V1 : create_all ne modifie pas une table existante.
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "ALTER TABLE admin_users "
+                    "ADD COLUMN IF NOT EXISTS gender VARCHAR(8)"
+                )
+            )
         with app.state.session_factory() as session:
             ensure_opening_hours(session)
             ensure_first_admin(session, app_settings)
