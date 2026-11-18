@@ -29,7 +29,7 @@ La V1 reste développée et testée localement avec Docker Compose, PostgreSQL, 
 - Générer les jetons avec un générateur cryptographiquement sûr, les protéger au repos et ne jamais les écrire dans les journaux. Ne pas exposer les données d’un autre bénévole via un lien individuel.
 - Protéger les mots de passe et les opérations d’administration avec les mécanismes de sécurité adaptés ; appliquer les permissions côté serveur, pas seulement dans l’interface.
 - Ne pas journaliser les mots de passe, jetons ou données personnelles inutiles.
-- Garder MailHog pour les courriels de développement local. Ne pas configurer un fournisseur de production ou un déploiement distant sans instruction explicite.
+- Garder MailHog pour les courriels de développement local. Le staging utilise le SMTP OVH configuré dans `.env.staging` ; ne pas exposer ses identifiants.
 
 ## Interface et langue
 

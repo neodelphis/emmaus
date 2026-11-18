@@ -40,21 +40,6 @@ services:
         max-size: "20m"
         max-file: "10"
 
-  mailhog:
-    image: mailhog/mailhog:v1.0.1
-    container_name: emmaus-staging-mailhog
-    restart: unless-stopped
-    # Accessible uniquement en local sur le serveur, via un tunnel SSH.
-    ports:
-      - "127.0.0.1:8025:8025"
-    networks:
-      - default
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "5"
-
   api:
     image: ghcr.io/neodelphis/emmaus/backend:${IMAGE_TAG:-staging}
     container_name: emmaus-staging-api
@@ -64,9 +49,12 @@ services:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:?Définir POSTGRES_USER dans .env.staging}:${POSTGRES_PASSWORD:?Définir POSTGRES_PASSWORD dans .env.staging}@db:5432/${POSTGRES_DB:?Définir POSTGRES_DB dans .env.staging}
       SECRET_KEY: ${SECRET_KEY:?Définir SECRET_KEY dans .env.staging}
       FRONTEND_URL: ${FRONTEND_URL:?Définir FRONTEND_URL dans .env.staging}
-      SMTP_HOST: mailhog
-      SMTP_PORT: "1025"
-      SMTP_FROM: ${SMTP_FROM:-Emmaus staging <ne-pas-repondre@emmaus.local>}
+      SMTP_HOST: ${SMTP_HOST:?Définir SMTP_HOST dans .env.staging}
+      SMTP_PORT: ${SMTP_PORT:?Définir SMTP_PORT dans .env.staging}
+      SMTP_USERNAME: ${SMTP_USERNAME:?Définir SMTP_USERNAME dans .env.staging}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:?Définir SMTP_PASSWORD dans .env.staging}
+      SMTP_USE_SSL: ${SMTP_USE_SSL:-true}
+      SMTP_FROM: ${SMTP_FROM:?Définir SMTP_FROM dans .env.staging}
       ADMIN_EMAIL: ${ADMIN_EMAIL:?Définir ADMIN_EMAIL dans .env.staging}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Définir ADMIN_PASSWORD dans .env.staging}
       ADMIN_GENDER: ${ADMIN_GENDER:-}

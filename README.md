@@ -290,8 +290,8 @@ Le staging est déployé sur `emmaus-staging.neodelphis.ovh` via GitHub Actions,
 GHCR et Traefik. Le workflow exécute les tests et le lint, construit les images,
 puis les déploie sur le serveur par SSH.
 
-La procédure complète (DNS, secrets GitHub, clé SSH, `.env.staging`, premier
-déploiement, MailHog et rollback) est décrite dans
+La procédure complète (DNS, secrets GitHub, clé SSH, `.env.staging`, courriels
+OVH et rollback) est décrite dans
 [`docs/DEPLOYMENT_STAGING.md`](docs/DEPLOYMENT_STAGING.md).
 
 ## Hors périmètre de la V1

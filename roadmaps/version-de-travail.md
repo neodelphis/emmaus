@@ -120,8 +120,8 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
 20. **Déploiement staging.** Le workflow `.github/workflows/deploy-staging.yml`
     exécute les tests/lint, publie les images backend/frontend sur GHCR, puis déploie
     via SSH sur le VPS derrière Traefik. Le Compose `docker-compose.staging.yml`
-    utilise une base PostgreSQL interne, MailHog pour les courriels et un seul routeur
-    public HTTPS. L’environnement GitHub `staging` porte les secrets SSH ; le fichier
+    utilise une base PostgreSQL interne, le SMTP OVH pour les courriels et un seul
+    routeur public HTTPS. L’environnement GitHub `staging` porte les secrets SSH ; le fichier
     `.env.staging` reste uniquement sur le serveur. La production reste hors périmètre.
 21. **Planning par demi-journées.** La vue administration présente une carte par jour,
     avec deux listes : **Matin** (avant 13:00) et **Après-midi** (dès 13:00). Chaque
@@ -137,7 +137,7 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
 
 ## Validation effectuée
 
-- `pytest` : 71 tests backend, exécutés dans le conteneur API avec PostgreSQL.
+- `pytest` : 72 tests backend, exécutés dans le conteneur API avec PostgreSQL.
 - `ruff check app tests` : aucune erreur.
 - `npm run lint` : aucune erreur ni avertissement.
 - `npm run build` : compilation TypeScript et build Vite réussis.

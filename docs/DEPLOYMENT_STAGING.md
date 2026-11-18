@@ -26,8 +26,8 @@ Traefik (proxy-net)
   sur le réseau interne du projet Compose.
 - **Images GHCR** : GitHub Actions construit `backend` et `frontend`, les publie
   sur GitHub Container Registry, puis le serveur les récupère.
-- **MailHog** capture les courriels du staging. Il n’est accessible que sur
-  `127.0.0.1:8025` du serveur, via un tunnel SSH.
+- **Courriels OVH** : le staging utilise le SMTP OVH (`ssl0.ovh.net:465`) pour
+  envoyer réellement les liens et les réinitialisations de mot de passe.
 - **Tests avant déploiement** : le workflow exécute le lint, les tests backend
   sur PostgreSQL et le build frontend avant de construire les images.
 
@@ -119,13 +119,14 @@ Remplir au minimum :
 - `SECRET_KEY` : `openssl rand -hex 32` ;
 - `ADMIN_EMAIL` et `ADMIN_PASSWORD` : premier administrateur du staging, mot de
   passe de 12 caractères minimum, différent du développement ;
-- `FRONTEND_URL` : `https://emmaus-staging.neodelphis.ovh` (déjà dans le modèle).
+- `FRONTEND_URL` : `https://emmaus-staging.neodelphis.ovh` (déjà dans le modèle) ;
+- `SMTP_USERNAME` et `SMTP_PASSWORD` : compte SMTP OVH expéditeur.
 
 Le premier compte créé par le staging est administrateur principal. Il est créé
 au premier démarrage uniquement ; ensuite, les comptes se gèrent dans **Compte**.
 
-> Les courriels passent par MailHog. Le staging n’envoie rien vers l’extérieur
-> tant que `SMTP_HOST`/`SMTP_PORT` ne sont pas remplacés par un vrai serveur SMTP.
+> Les courriels sont réellement envoyés depuis le staging via OVH. Utiliser une
+> adresse de test pour les premières vérifications.
 
 ## 5. Configurer GitHub Actions
 
@@ -205,16 +206,21 @@ Après le premier déploiement, se connecter avec les identifiants
 gh workflow run deploy-staging.yml --ref main
 ```
 
-## 7. Consulter MailHog
+## 7. Courriels OVH
 
-MailHog n’est pas exposé publiquement. Ouvrir un tunnel SSH :
+Le staging n’utilise pas MailHog : les courriels partent réellement via OVH.
 
-```sh
-ssh -N -L 8025:127.0.0.1:8025 staging
+```dotenv
+SMTP_HOST=ssl0.ovh.net
+SMTP_PORT=465
+SMTP_USERNAME=ne-pas-repondre@neodelphis.ovh
+SMTP_PASSWORD=...
+SMTP_USE_SSL=true
+SMTP_FROM="Emmaus <ne-pas-repondre@neodelphis.ovh>"
 ```
 
-Puis ouvrir <http://localhost:8025>. Les liens bénévoles envoyés depuis le
-staging y apparaissent.
+Le compte expéditeur OVH doit être autorisé à envoyer avec cette adresse. Tester
+avec une adresse de test avant de communiquer le lien de staging.
 
 ## 8. Rollback
 
@@ -266,15 +272,24 @@ la résolution DNS correcte. Le workflow attend jusqu’à 300 secondes.
 
 ### Les courriels ne partent pas
 
-Le staging utilise volontairement MailHog. Les courriels ne sont pas envoyés à
-l’extérieur. Pour un vrai SMTP, remplacer `SMTP_HOST`, `SMTP_PORT` et
-éventuellement `SMTP_FROM` dans `docker-compose.staging.yml`, puis redéployer.
+Vérifier dans `.env.staging` :
+
+- `SMTP_HOST=ssl0.ovh.net` ;
+- `SMTP_PORT=465` ;
+- `SMTP_USE_SSL=true` ;
+- `SMTP_USERNAME` et `SMTP_PASSWORD` du compte OVH ;
+- `SMTP_FROM` avec l’adresse expéditrice autorisée.
+
+Les logs de l’API indiquent le type d’échec sans révéler le mot de passe. Vérifier
+aussi que le compte OVH n’est pas bloqué et que l’adresse expéditrice est
+autorisée.
 
 ## 10. Sécurité
 
 - `.env.staging` n’est jamais versionné et doit être en `chmod 600`.
 - La clé SSH de la CI est dédiée au staging.
-- PostgreSQL et MailHog ne sont pas exposés sur Internet.
+- PostgreSQL n’est pas exposé sur Internet.
+- Les identifiants SMTP OVH restent dans `.env.staging` sur le serveur.
 - Seul Traefik publie 80/443.
 - Les secrets de staging sont différents de ceux du développement et de la
   production.
