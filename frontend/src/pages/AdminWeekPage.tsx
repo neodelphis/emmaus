@@ -5,7 +5,6 @@ import {
   CalendarDays,
   CheckCircle2,
   RefreshCw,
-  UserRoundX,
   Users,
 } from 'lucide-react'
 import { api, ApiError } from '../api'
@@ -130,11 +129,9 @@ export function AdminWeekPage() {
     })
   }, [data, weekDays])
 
-  const unanswered = useMemo(
-    () => (data?.volunteers ?? []).filter((volunteer) => !volunteer.submitted),
-    [data],
-  )
-  const answeredCount = (data?.volunteers.length ?? 0) - unanswered.length
+  const answeredCount = (data?.volunteers ?? []).filter(
+    (volunteer) => volunteer.submitted,
+  ).length
   const total = data?.volunteers.length ?? 0
   const periodLabel = data ? formatPeriodRange(data.period_start, data.period_end) : ''
 
@@ -232,41 +229,7 @@ export function AdminWeekPage() {
               <strong className="font-semibold text-stone-900">{answeredCount}</strong>
               réponse{answeredCount > 1 ? 's' : ''}
             </span>
-            <span className="inline-flex items-center gap-1.5">
-              <AlertTriangle className="h-4 w-4 text-amber-600" aria-hidden />
-              <strong className="font-semibold text-stone-900">{unanswered.length}</strong>
-              sans réponse
-            </span>
           </div>
-
-          {unanswered.length > 0 ? (
-            <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-              <UserRoundX className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" aria-hidden />
-              <div className="min-w-0 text-sm text-amber-900">
-                <p className="font-semibold">
-                  {unanswered.length} bénévole{unanswered.length > 1 ? 's' : ''} sans
-                  réponse pour cette période
-                </p>
-                <p className="mt-0.5 text-xs leading-relaxed text-amber-800">
-                  Ils ne sont pas comptés comme indisponibles. Sans réponse :{' '}
-                  {unanswered.map((volunteer) => volunteer.name).join(' · ')}.
-                </p>
-              </div>
-              <Link
-                to="/admin/benevoles"
-                className="ml-auto hidden shrink-0 text-xs font-semibold text-amber-900 underline-offset-2 hover:underline sm:block"
-              >
-                Gérer les bénévoles
-              </Link>
-            </div>
-          ) : (
-            total > 0 && (
-              <div className="flex items-center gap-2 rounded-xl border border-brand-100 bg-brand-50 px-4 py-2.5 text-sm text-brand-800">
-                <CheckCircle2 className="h-4 w-4" aria-hidden />
-                Tous les bénévoles affichés ont répondu pour cette période.
-              </div>
-            )
-          )}
 
           {total === 0 ? (
             <EmptyState
@@ -393,10 +356,6 @@ export function AdminWeekPage() {
                     <span className="h-2.5 w-2.5 rounded-sm bg-stone-200" />
                     Indisponible (non affiché)
                   </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="h-2.5 w-2.5 rounded-sm bg-amber-200" />
-                    Sans réponse
-                  </span>
                   {hasInactive && (
                     <span className="inline-flex items-center gap-1.5">
                       <span className="h-2.5 w-2.5 rounded-sm border border-dashed border-stone-400" />
@@ -409,8 +368,7 @@ export function AdminWeekPage() {
                   13:00 apparaît dans les deux listes avec ses horaires réels. Les
                   journées entières sont affichées en vert en haut et reprises dans les
                   deux listes. Les bénévoles indisponibles ne sont pas listés : leur
-                  nombre est indiqué dans l'en-tête de chaque jour. Les bénévoles sans
-                  réponse sont signalés séparément.
+                  nombre est indiqué dans l'en-tête de chaque jour.
                 </p>
               </div>
             </>

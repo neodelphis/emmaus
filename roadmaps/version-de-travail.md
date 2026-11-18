@@ -31,7 +31,9 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
    modifiable.
 3. **Soumission et jours vides.** Une `AvailabilityResponse` matérialise la soumission
    d'une période. Une journée sans ligne `DayAvailability` dans une réponse soumise vaut
-   « indisponible » ; l'absence de réponse pour la période vaut « sans réponse ».
+   « indisponible » ; l'absence de réponse pour la période reste distincte dans les
+   données. À la demande de l'utilisateur, cette distinction n'est toutefois plus affichée
+   dans le planning d'administration : seuls les bénévoles disponibles y figurent.
    L'enregistrement met à jour uniquement les jours ouverts envoyés par le formulaire ; les
    jours déjà clos conservent leur valeur.
 4. **Historique des propositions.** Seules les périodes dont le samedi est strictement
@@ -71,10 +73,10 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
     lisible avec une quinzaine de personnes par créneau. Un créneau qui chevauche 13:00
     apparaît dans les deux listes. Les journées entières sont affichées dans un bandeau
     vert en haut de chaque jour **et** reprises dans les deux listes. Les bénévoles sans
-    réponse sont listés dans un encart distinct et ne sont jamais comptés comme
-    indisponibles ; le nombre d'indisponibles est rappelé par jour. Sur mobile, un
-    sélecteur de jour affiche une journée à la fois ; sur ordinateur, les cinq cartes sont
-    visibles et un filtre permet d'isoler un jour.
+    réponse ne sont plus signalés dans cette vue (demande explicite de l'utilisateur) ; le
+    nombre d'indisponibles ayant répondu est rappelé par jour. Sur mobile, un sélecteur de
+    jour affiche une journée à la fois ; sur ordinateur, les cinq cartes sont visibles et
+    un filtre permet d'isoler un jour.
 
 ## Validation effectuée
 
@@ -117,7 +119,7 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
   veille, jour vide / toute la journée / créneau de 30 minutes, propositions historiques.
 - Administration : bénévoles, liens (copie, envoi, révocation, régénération), planning
   par jour avec listes matin/après-midi, journées entières reprises dans les deux listes,
-  non-répondants distincts, filtres par jour, horaires, comptes administrateurs.
+  filtres par jour, horaires, comptes administrateurs.
 - Validation : 56 tests backend, lint, build, test de fumée Docker et vérifications
   navigateur mobile/bureau.
 
