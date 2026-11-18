@@ -4,8 +4,9 @@
 
     docker compose exec api python -m app.seed_demo
 
-Le script remplace uniquement les bénévoles dont l'adresse se termine par
-``@demo.emmaus.fr``, puis affiche les liens personnels à ouvrir. Il refuse de
+Le script remplace les bénévoles dont l'adresse se termine par
+``@demo.emmaus.fr``, crée ou réinitialise un compte administrateur normal de
+démonstration, puis affiche les liens personnels à ouvrir. Il refuse de
 s'exécuter lorsque ``APP_ENV=production``.
 """
 
@@ -29,10 +30,13 @@ from app.domain.periods import (
     visible_period_starts,
 )
 from app.domain.sites import DEFAULT_SITE
-from app.models import AvailabilityResponse, DayAvailability, Volunteer
+from app.models import AdminUser, AvailabilityResponse, DayAvailability, Volunteer
+from app.security import hash_password
 from app.services.links import LinkService
 
 DEMO_DOMAIN = "@demo.emmaus.fr"
+DEMO_ADMIN_EMAIL = f"admin.test{DEMO_DOMAIN}"
+DEMO_ADMIN_PASSWORD = "test-admin-123"
 DayKind = Literal["all_day", "slot"]
 
 
@@ -248,6 +252,28 @@ def seed_demo() -> list[tuple[str, str, bool]]:
                 submitted_at=_submitted_at_for(start),
             )
 
+        demo_admin = session.scalar(
+            select(AdminUser).where(AdminUser.email == DEMO_ADMIN_EMAIL)
+        )
+        if demo_admin is None:
+            demo_admin = AdminUser(
+                email=DEMO_ADMIN_EMAIL,
+                password_hash=hash_password(DEMO_ADMIN_PASSWORD),
+                first_name="Admin",
+                last_name="Test",
+                role="admin",
+                gender="homme",
+                last_site=DEFAULT_SITE,
+            )
+            session.add(demo_admin)
+        else:
+            demo_admin.password_hash = hash_password(DEMO_ADMIN_PASSWORD)
+            demo_admin.first_name = "Admin"
+            demo_admin.last_name = "Test"
+            demo_admin.role = "admin"
+            demo_admin.gender = "homme"
+            demo_admin.last_site = DEFAULT_SITE
+
         session.commit()
 
         return [
@@ -265,9 +291,12 @@ def main() -> int:
     for name, link, active in rows:
         suffix = "" if active else "  (bénévole désactivé : le lien est refusé)"
         print(f"- {name} : {link}{suffix}")
+    print("\nCompte administrateur de démonstration :")
+    print(f"- {DEMO_ADMIN_EMAIL} / {DEMO_ADMIN_PASSWORD} (rôle Administrateur)")
     print(
         "\nRelancer cette commande remplace les bénévoles de démonstration "
-        f"(adresses en {DEMO_DOMAIN})."
+        f"(adresses en {DEMO_DOMAIN}) et réinitialise le compte administrateur "
+        "de démonstration."
     )
     return 0
 
