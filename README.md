@@ -175,6 +175,21 @@ Il lit les identifiants dans `.env` et ne doit être utilisé qu'en local.
 - Les journaux d'accès Uvicorn sont désactivés dans Compose ; les courriels et erreurs ne
   contiennent jamais de mot de passe ni de jeton.
 
+## Dépannage navigateur (Firefox)
+
+La politique de sécurité du contenu (CSP) est volontairement stricte : l'application ne
+charge qu'un script externe et n'utilise ni `eval`, ni script intégré, ni URL `file://`.
+Si Firefox affiche un message du type « script intégré bloqué (`sandbox eval`) » ou
+« ne peut pas charger de données vers `file:///` », il s'agit d'une **extension du
+navigateur** (React DevTools, gestionnaire de mots de passe, traducteur, bloqueur de
+publicités, etc.) qui tente d'injecter du code ou d'accéder à un fichier local.
+
+Pour le vérifier : ouvrir Firefox en **mode de dépannage** (menu Aide → Mode de
+dépannage) ou dans un profil neuf, puis recharger la page. Un test de l'administration
+dans un Firefox sans extension ne produit aucun message de ce type. Il ne faut pas
+ajouter `'unsafe-inline'` à la CSP pour faire taire ces avertissements : cela
+affaiblirait la sécurité de l'application.
+
 ## Structure
 
 ```text

@@ -93,6 +93,10 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
   administrateur et réinitialisation de mot de passe.
 - Jeu de démonstration `app.seed_demo` vérifié sur les cinq profils bénévoles et le cas
   du lien désactivé ; les liens sont affichés à l'exécution et ne sont pas versionnés.
+- Vérification de l'administration dans un Firefox sans extension (Playwright) : aucun
+  message dans la console, un seul script externe chargé, aucune requête `file://`.
+  Les avertissements CSP `sandbox eval` observés dans un Firefox équipé d'extensions
+  proviennent d'un script injecté par une extension, pas de l'application.
 
 ## Points d'attention restants
 
