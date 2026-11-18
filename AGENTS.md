@@ -34,6 +34,21 @@ La V1 est locale : Docker Compose, PostgreSQL, FastAPI, React/Vite et MailHog. L
 - Réutiliser Tailwind CSS et Lucide React conformément à la feuille de route et aux dépendances réellement présentes.
 - Distinguer visuellement et dans les données les jours indisponibles des bénévoles qui n’ont pas répondu à une période.
 
+## Workflow Git
+
+- `main` est la branche stable : ne jamais y travailler directement. La branche locale doit rester alignée sur `origin/main` avec `git pull --ff-only`.
+- Pour chaque modification, créer une branche dédiée depuis `main` :
+  ```bash
+  git switch main
+  git pull --ff-only origin main
+  git switch -c <type>/<sujet-court>
+  ```
+  Types usuels : `feat/`, `fix/`, `docs/`, `chore/`, `refactor/`, `test/`.
+- Committer et pousser la branche avec `git push -u origin <branche>`.
+- Ouvrir une pull request avec `gh pr create --base main --head <branche>`.
+- Après validation, fusionner en squash avec `gh pr merge --squash --delete-branch`, puis revenir sur `main` et exécuter `git pull --ff-only origin main`.
+- Ne jamais fusionner sans avoir exécuté les vérifications du dépôt et ne jamais pousser de secret, de jeton ou de donnée personnelle.
+
 ## Changements et validation
 
 - Examiner les fichiers, dépendances et scripts existants avant de choisir une approche ou une commande. Ne pas présumer que des composants décrits dans la feuille de route sont déjà implémentés.
