@@ -138,13 +138,29 @@ export function DayEditor({
     >
       <fieldset>
         <legend className="sr-only">Disponibilité du {formatDayDate(day.date)}</legend>
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">
-            {formatDayDate(day.date).split(' ')[0]}
-          </p>
-          <h3 className="mt-0.5 text-base font-semibold text-stone-900">
-            {formatDayMonth(day.date)}
-          </h3>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">
+              {formatDayDate(day.date).split(' ')[0]}
+            </p>
+            <h3 className="mt-0.5 text-base font-semibold text-stone-900">
+              {formatDayMonth(day.date)}
+            </h3>
+          </div>
+          {draft.kind !== 'unavailable' && (
+            <select
+              className="input w-36 shrink-0 bg-white py-1.5 text-xs"
+              aria-label="Site de la journée"
+              value={draft.site}
+              onChange={(event) => changeSite(event.target.value as SiteCode)}
+            >
+              {sites.map((site) => (
+                <option key={site.code} value={site.code}>
+                  {site.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         <div className="mt-3 grid grid-cols-3 items-stretch gap-2">
@@ -244,23 +260,6 @@ export function DayEditor({
           </label>
         </div>
 
-
-        {draft.kind !== 'unavailable' && (
-          <label className="mt-3 block text-xs font-medium text-stone-600">
-            Site
-            <select
-              className="input mt-1 bg-white py-2"
-              value={draft.site}
-              onChange={(event) => changeSite(event.target.value as SiteCode)}
-            >
-              {sites.map((site) => (
-                <option key={site.code} value={site.code}>
-                  {site.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
 
         {draft.kind === 'slot' && (
           <div className="mt-3 rounded-xl bg-stone-50 p-3">
