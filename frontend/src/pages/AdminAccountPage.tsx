@@ -215,10 +215,6 @@ export function AdminAccountPage() {
                 Enregistrer
               </Button>
             </div>
-            <p className="mt-1 text-[11px] text-stone-400">
-              Le prénom et le nom apparaissent sous « Connecté » dans la barre latérale.
-              Le genre détermine « Connecté » / « Connectée ».
-            </p>
           </div>
 
           <div className="mt-5 flex flex-col gap-2 sm:flex-row">
