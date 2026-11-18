@@ -27,7 +27,7 @@ import { Modal } from '../components/ui/Modal'
 import { PageHeader } from '../components/ui/PageHeader'
 import { cn } from '../lib/cn'
 import { useToast } from '../toast'
-import type { Volunteer } from '../types'
+import type { Site, SiteCode, Volunteer } from '../types'
 
 interface LinkModalState {
   name: string
@@ -80,6 +80,7 @@ function IconAction({
 
 function VolunteerCard({
   volunteer,
+  siteName,
   onCopy,
   onSend,
   onEdit,
@@ -90,6 +91,7 @@ function VolunteerCard({
   busy,
 }: {
   volunteer: Volunteer
+  siteName: string
   onCopy: (volunteer: Volunteer) => void
   onSend: (volunteer: Volunteer) => void
   onEdit: (volunteer: Volunteer) => void
@@ -138,6 +140,11 @@ function VolunteerCard({
               </Badge>
             ) : (
               <Badge tone="amber">Genre à renseigner</Badge>
+            )}
+            {volunteer.default_site ? (
+              <Badge tone="stone">{siteName}</Badge>
+            ) : (
+              <Badge tone="amber">Site à renseigner</Badge>
             )}
           </div>
           <p className="mt-0.5 truncate text-xs text-stone-400">
@@ -202,16 +209,19 @@ function VolunteerCard({
 function VolunteerFormModal({
   open,
   initial,
+  sites,
   onClose,
   onSubmit,
 }: {
   open: boolean
   initial: Volunteer | null
+  sites: Site[]
   onClose: () => void
   onSubmit: (
     name: string,
     email: string,
     gender: 'homme' | 'femme',
+    defaultSite: SiteCode,
   ) => Promise<void>
 }) {
   const [name, setName] = useState(initial?.name ?? '')
@@ -219,9 +229,16 @@ function VolunteerFormModal({
   const [gender, setGender] = useState<'homme' | 'femme' | ''>(
     initial?.gender ?? '',
   )
+  const [defaultSite, setDefaultSite] = useState<SiteCode | ''>(
+    initial?.default_site ?? sites[0]?.code ?? '',
+  )
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const isEdit = initial !== null
+
+  useEffect(() => {
+    if (!defaultSite && sites[0]) setDefaultSite(sites[0].code)
+  }, [defaultSite, sites])
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -234,9 +251,13 @@ function VolunteerFormModal({
       setError('Le genre est obligatoire.')
       return
     }
+    if (!defaultSite) {
+      setError('Le site par défaut est obligatoire.')
+      return
+    }
     setLoading(true)
     try {
-      await onSubmit(name.trim(), email.trim(), gender)
+      await onSubmit(name.trim(), email.trim(), gender, defaultSite)
     } catch (caught) {
       setError(
         caught instanceof ApiError ? caught.message : 'L’enregistrement a échoué.',
@@ -295,6 +316,20 @@ function VolunteerFormModal({
           <option value="homme">Homme</option>
           <option value="femme">Femme</option>
         </Select>
+        <Select
+          label="Site d'affectation par défaut"
+          required
+          value={defaultSite}
+          onChange={(event) => setDefaultSite(event.target.value as SiteCode | '')}
+          hint="Le bénévole pourra choisir l'autre site pour une journée donnée."
+        >
+          <option value="">Sélectionner…</option>
+          {sites.map((site) => (
+            <option key={site.code} value={site.code}>
+              {site.name}
+            </option>
+          ))}
+        </Select>
         <Input
           label="Adresse courriel (facultatif)"
           type="email"
@@ -319,6 +354,20 @@ export function AdminVolunteersPage() {
   const [linkModal, setLinkModal] = useState<LinkModalState | null>(null)
   const [confirm, setConfirm] = useState<ConfirmState | null>(null)
   const [confirmLoading, setConfirmLoading] = useState(false)
+  const [sites, setSites] = useState<Site[]>([])
+
+  useEffect(() => {
+    api
+      .listSites()
+      .then(setSites)
+      .catch((caught) => {
+        setError(
+          caught instanceof ApiError
+            ? caught.message
+            : 'Les sites n’ont pas pu être chargés.',
+        )
+      })
+  }, [])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -502,12 +551,14 @@ export function AdminVolunteersPage() {
     name: string,
     email: string,
     gender: 'homme' | 'femme',
+    defaultSite: SiteCode,
   ) => {
     if (form?.mode === 'edit') {
       await api.updateVolunteer(form.volunteer.id, {
         name,
         email: email || null,
         gender,
+        default_site: defaultSite,
       })
       toast.success('Le bénévole a été mis à jour.')
       setForm(null)
@@ -518,6 +569,7 @@ export function AdminVolunteersPage() {
       name,
       email: email || null,
       gender,
+      default_site: defaultSite,
     })
     setForm(null)
     setLinkModal({ name: created.name, link: created.link })
@@ -615,6 +667,10 @@ export function AdminVolunteersPage() {
               <VolunteerCard
                 key={volunteer.id}
                 volunteer={volunteer}
+                siteName={
+                  sites.find((site) => site.code === volunteer.default_site)?.name ??
+                  'Site inconnu'
+                }
                 onCopy={copyLink}
                 onSend={sendLink}
                 onEdit={(item) => setForm({ mode: 'edit', volunteer: item })}
@@ -646,6 +702,10 @@ export function AdminVolunteersPage() {
                   <VolunteerCard
                     key={volunteer.id}
                     volunteer={volunteer}
+                    siteName={
+                      sites.find((site) => site.code === volunteer.default_site)?.name ??
+                      'Site inconnu'
+                    }
                     onCopy={copyLink}
                     onSend={sendLink}
                     onEdit={(item) => setForm({ mode: 'edit', volunteer: item })}
@@ -666,6 +726,7 @@ export function AdminVolunteersPage() {
         key={form?.mode === 'edit' ? form.volunteer.id : 'create'}
         open={form !== null}
         initial={form?.mode === 'edit' ? form.volunteer : null}
+        sites={sites}
         onClose={() => setForm(null)}
         onSubmit={handleFormSubmit}
       />

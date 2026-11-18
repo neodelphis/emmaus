@@ -2,14 +2,15 @@
 
 Application locale permettant aux bénévoles de déclarer leurs disponibilités pour les
 périodes de service du **mardi au samedi**, sans créer de compte : chacun reçoit un lien
-personnel sécurisé. Une interface d'administration gère les bénévoles, les liens, les
-horaires d'ouverture et le planning hebdomadaire des réponses.
+personnel sécurisé. L'association intervient sur deux sites, **Vairé** et **Les Essarts**.
+Chaque site possède son propre planning et ses propres horaires d'ouverture.
 
 Le planning affiche une colonne par jour avec deux listes, **Matin** et **Après-midi**,
 un créneau **Repas** et les horaires de chacun. Les disponibilités « toute la journée »
 apparaissent sur fond vert dans les deux listes et sont inscrites par défaut au repas de
 12:30–13:30. Seuls les bénévoles ayant répondu avec une disponibilité apparaissent dans
-cette vue : les bénévoles sans réponse n'y sont plus signalés.
+cette vue : les bénévoles sans réponse n'y sont plus signalés. L'administration reprend
+par défaut le dernier site qu'elle a consulté.
 
 La feuille de route fonctionnelle est dans
 [`roadmaps/feuille-de-route-initiale.md`](roadmaps/feuille-de-route-initiale.md) et son
@@ -129,7 +130,9 @@ Le script remplace uniquement les bénévoles dont l'adresse se termine par
 propositions issues de l'historique (Marie), réponses enregistrées et jours clôturés
 (Jean), absence totale de réponse (Fatima), semaine suivante entièrement disponible
 (Paul), créneaux variés (Karim) et bénévole désactivé dont le lien est refusé (Ancien
-Bénévole). Il refuse de s'exécuter si `APP_ENV=production`.
+Bénévole). Les profils sont répartis entre Vairé et Les Essarts, et certains jours
+illustrent l'intervention sur l'autre site. Il refuse de s'exécuter si
+`APP_ENV=production`.
 
 ### Test de fumée Docker
 
@@ -150,10 +153,13 @@ Il lit les identifiants dans `.env` et ne doit être utilisé qu'en local.
 - Un jour reste modifiable jusqu'à 23 h 59 la veille, dans le fuseau `Europe/Paris`.
   Une journée non renseignée dans une période **soumise** vaut « indisponible » ; une
   période **non soumise** est affichée « sans réponse » à l'administration.
+- Deux sites : Vairé et Les Essarts. Chaque bénévole a un site d'affectation par défaut
+  et peut choisir l'autre site pour une journée donnée. Une seule disponibilité et un
+  seul site sont possibles par jour.
 - Réponse par jour : vide, toute la journée, ou un seul créneau continu par pas de
-  30 minutes, dans les heures d'ouverture configurées.
-- Horaires par défaut 08:00–18:00 du mardi au samedi, modifiables sans réécrire les
-  réponses existantes.
+  30 minutes, dans les heures d'ouverture du site choisi.
+- Horaires par défaut 08:00–18:00 du mardi au samedi, propres à chaque site et modifiables
+  sans réécrire les réponses existantes.
 - Propositions : créneau le plus fréquent parmi les quatre dernières périodes **achevées**
   renseignées, jamais les périodes futures ; jours vides ignorés ; « toute la journée »
   distincte ; créneaux proches si début et fin diffèrent d'au plus 30 minutes ; égalités
@@ -182,6 +188,9 @@ Il lit les identifiants dans `.env` et ne doit être utilisé qu'en local.
   ou « Connectée ».
 - Le genre des bénévoles est renseigné dans le formulaire d'administration et stocké sur
   la fiche. Les fiches existantes sans genre portent le badge « Genre à renseigner ».
+- Le site d'affectation par défaut est stocké sur la fiche bénévole. Le site choisi pour
+  chaque disponibilité est conservé séparément ; le planning administrateur et les repas
+  sont filtrés par site.
 - Les journaux d'accès Uvicorn sont désactivés dans Compose ; les courriels et erreurs ne
   contiennent jamais de mot de passe ni de jeton.
 

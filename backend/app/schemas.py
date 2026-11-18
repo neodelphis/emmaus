@@ -9,6 +9,12 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, PlainSerializer, fi
 TimeOfDay = Annotated[time, PlainSerializer(lambda value: value.strftime("%H:%M"))]
 
 WeekdayNumber = Annotated[int, Field(ge=1, le=5)]
+SiteCode = Literal["vaire", "les-essarts"]
+
+
+class SiteOut(BaseModel):
+    code: SiteCode
+    name: str
 
 
 class AdminOut(BaseModel):
@@ -17,6 +23,11 @@ class AdminOut(BaseModel):
     id: UUID
     email: EmailStr
     gender: Literal["homme", "femme"] | None = None
+    last_site: SiteCode | None = None
+
+
+class UpdateLastSiteIn(BaseModel):
+    site: SiteCode
 
 
 class LoginIn(BaseModel):
@@ -55,6 +66,10 @@ class OpeningHoursIn(BaseModel):
     close: time
 
 
+class SiteWithHoursOut(SiteOut):
+    opening_hours: list[OpeningHoursOut]
+
+
 class OpeningHoursUpdateIn(BaseModel):
     hours: list[OpeningHoursIn]
 
@@ -71,6 +86,7 @@ class DayAnswerOut(BaseModel):
     kind: Literal["all_day", "slot"]
     start: TimeOfDay | None = None
     end: TimeOfDay | None = None
+    site: SiteCode | None = None
 
 
 class DayViewOut(BaseModel):
@@ -92,7 +108,8 @@ class PeriodViewOut(BaseModel):
 class VolunteerAccessOut(BaseModel):
     volunteer_name: str
     today: date
-    opening_hours: list[OpeningHoursOut]
+    default_site: SiteCode
+    sites: list[SiteWithHoursOut]
     periods: list[PeriodViewOut]
 
 
@@ -101,6 +118,7 @@ class DaySaveIn(BaseModel):
     kind: Literal["unavailable", "all_day", "slot"]
     start: time | None = None
     end: time | None = None
+    site: SiteCode | None = None
 
 
 class PeriodSaveIn(BaseModel):
@@ -111,6 +129,7 @@ class VolunteerCreateIn(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     email: EmailStr | None = None
     gender: Literal["homme", "femme"] | None = None
+    default_site: SiteCode | None = None
 
     @field_validator("name")
     @classmethod
@@ -125,6 +144,7 @@ class VolunteerUpdateIn(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=120)
     email: EmailStr | None = None
     gender: Literal["homme", "femme"] | None = None
+    default_site: SiteCode | None = None
     is_active: bool | None = None
 
     @field_validator("name")
@@ -143,6 +163,7 @@ class VolunteerOut(BaseModel):
     name: str
     email: EmailStr | None
     gender: Literal["homme", "femme"] | None = None
+    default_site: SiteCode | None = None
     is_active: bool
     has_link: bool
     created_at: datetime
@@ -184,6 +205,7 @@ class WeekViewOut(BaseModel):
     period_start: date
     period_end: date
     today: date
+    site: SiteCode
     opening_hours: list[OpeningHoursOut]
     options: list[PeriodOptionOut]
     volunteers: list[WeekVolunteerOut]

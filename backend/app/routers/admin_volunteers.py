@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.deps import get_db, get_email_service, get_link_service, require_admin
+from app.domain.sites import DEFAULT_SITE
 from app.models import (
     AvailabilityResponse,
     DayAvailability,
@@ -60,6 +61,7 @@ def _out(volunteer: Volunteer) -> VolunteerOut:
         name=volunteer.name,
         email=volunteer.email,
         gender=volunteer.gender,
+        default_site=volunteer.default_site,  # type: ignore[arg-type]
         is_active=volunteer.is_active,
         has_link=bool(volunteer.link_token_hash),
         created_at=volunteer.created_at,
@@ -94,6 +96,7 @@ def create_volunteer(
         name=payload.name.strip(),
         email=str(payload.email).lower() if payload.email else None,
         gender=payload.gender,
+        default_site=payload.default_site or DEFAULT_SITE,
     )
     link = link_service.issue_link(volunteer)
     session.add(volunteer)
@@ -116,6 +119,8 @@ def update_volunteer(
         volunteer.email = str(payload.email).lower() if payload.email else None
     if "gender" in fields and payload.gender is not None:
         volunteer.gender = payload.gender
+    if "default_site" in fields and payload.default_site is not None:
+        volunteer.default_site = payload.default_site
     if "is_active" in fields and payload.is_active is not None:
         volunteer.is_active = payload.is_active
     session.commit()

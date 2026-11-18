@@ -20,7 +20,11 @@ from app.routers import (
     admin_week,
     public_volunteer,
 )
-from app.services.bootstrap import ensure_first_admin, ensure_opening_hours
+from app.services.bootstrap import (
+    backfill_sites,
+    ensure_first_admin,
+    ensure_site_opening_hours,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -50,8 +54,27 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     "ADD COLUMN IF NOT EXISTS gender VARCHAR(8)"
                 )
             )
+            connection.execute(
+                text(
+                    "ALTER TABLE admin_users "
+                    "ADD COLUMN IF NOT EXISTS last_site VARCHAR(16)"
+                )
+            )
+            connection.execute(
+                text(
+                    "ALTER TABLE volunteers "
+                    "ADD COLUMN IF NOT EXISTS default_site VARCHAR(16)"
+                )
+            )
+            connection.execute(
+                text(
+                    "ALTER TABLE day_availabilities "
+                    "ADD COLUMN IF NOT EXISTS site VARCHAR(16)"
+                )
+            )
         with app.state.session_factory() as session:
-            ensure_opening_hours(session)
+            ensure_site_opening_hours(session)
+            backfill_sites(session)
             ensure_first_admin(session, app_settings)
         logger.info("API Emmaüs prête.")
         try:

@@ -84,7 +84,17 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
     d'administration et permet de préparer des accords adaptés dans les messages. Les
     fiches sans genre affichent « Genre à renseigner ». La colonne est ajoutée aux bases
     existantes par un `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` idempotent.
-16. **Planning par demi-journées.** La vue administration présente une carte par jour,
+16. **Multi-sites.** L’association dispose de deux sites fixes, **Vairé** (`vaire`) et
+    **Les Essarts** (`les-essarts`). Chaque bénévole a un `default_site` ; chaque
+    disponibilité quotidienne porte un `site` et une seule valeur est possible par jour.
+    L’administration choisit le site du planning et retrouve par défaut son dernier site
+    (`admin_users.last_site`, mis à jour via `PUT /api/admin/auth/last-site`). Les
+    horaires sont stockés dans `site_opening_hours`, avec copie des anciennes valeurs
+    dans Vairé. Le planning d’un site traite les disponibilités de l’autre site comme
+    indisponibles ; les repas sont eux aussi filtrés par site. Les colonnes de site sont
+    ajoutées aux bases existantes par des `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` et
+    les données historiques sont affectées à Vairé.
+17. **Planning par demi-journées.** La vue administration présente une carte par jour,
     avec deux listes : **Matin** (avant 13:00) et **Après-midi** (dès 13:00). Chaque
     bénévole y figure avec ses horaires réels, sans positionnement horaire, afin de rester
     lisible avec une quinzaine de personnes par créneau. Un créneau qui chevauche 13:00
@@ -98,7 +108,7 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
 
 ## Validation effectuée
 
-- `pytest` : 56 tests backend, exécutés dans le conteneur API avec PostgreSQL.
+- `pytest` : 68 tests backend, exécutés dans le conteneur API avec PostgreSQL.
 - `ruff check app tests` : aucune erreur.
 - `npm run lint` : aucune erreur ni avertissement.
 - `npm run build` : compilation TypeScript et build Vite réussis.
@@ -106,9 +116,14 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
   bout sur une pile reconstruite depuis un volume vierge.
 - Vérifications Chromium (bureau et mobile) : connexion, planning par demi-journées,
   filtre par jour, sélecteur mobile, listes denses (16 bénévoles), création,
-  modification et suppression d'un bénévole,
-  enregistrement d'une disponibilité, modification des horaires, création d'un compte
-  administrateur et réinitialisation de mot de passe.
+  modification et suppression d'un bénévole, enregistrement d'une disponibilité,
+  modification des horaires, création d'un compte, sélection du site par
+  l'administration, mémorisation du dernier site, choix d'un autre site par le bénévole
+  et filtrage des plannings par site. Les horaires et le rattachement des repas au site
+  sont couverts par les tests d'API.
+- Création d'un compte administrateur et réinitialisation de mot de passe vérifiées.
+- Sites : tests API sur la liste des sites, le site par défaut, le choix de l'autre site,
+  la mémorisation du dernier site, le filtrage du planning et l'indépendance des horaires.
 - Jeu de démonstration `app.seed_demo` vérifié sur les cinq profils bénévoles et le cas
   du lien désactivé ; les liens sont affichés à l'exécution et ne sont pas versionnés.
 - Repas : tests API sur l'inscription par défaut, le retrait, la réinscription et le refus

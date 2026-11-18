@@ -1,5 +1,5 @@
 import { CalendarCheck2, Clock3, Lock, Sparkles, Sun, XCircle } from 'lucide-react'
-import type { DayKind, DayView, OpeningHours } from '../../types'
+import type { DayKind, DayView, OpeningHours, SiteCode, SiteWithHours } from '../../types'
 import { cn } from '../../lib/cn'
 import { formatDayDate, formatTimeRange, minutesOf, timeFromMinutes } from '../../lib/dates'
 
@@ -7,6 +7,7 @@ export interface DraftDay {
   kind: DayKind
   start: string
   end: string
+  site: SiteCode
 }
 
 function slotTimes(open: string, close: string): string[] {
@@ -28,6 +29,7 @@ interface DayEditorProps {
   day: DayView
   draft: DraftDay
   opening?: OpeningHours
+  sites: SiteWithHours[]
   submitted: boolean
   suggested: boolean
   onChange: (draft: DraftDay) => void
@@ -37,6 +39,7 @@ export function DayEditor({
   day,
   draft,
   opening,
+  sites,
   submitted,
   suggested,
   onChange,
@@ -56,6 +59,26 @@ export function DayEditor({
       return
     }
     onChange({ ...draft, kind })
+  }
+
+  const changeSite = (siteCode: SiteCode) => {
+    const site = sites.find((item) => item.code === siteCode)
+    const window = site?.opening_hours.find((item) => item.weekday === day.weekday)
+    const nextOpen = window?.open ?? open
+    const nextClose = window?.close ?? close
+    if (draft.kind !== 'slot') {
+      onChange({ ...draft, site: siteCode })
+      return
+    }
+    let start = draft.start
+    let end = draft.end
+    if (minutesOf(start) < minutesOf(nextOpen) || minutesOf(start) >= minutesOf(nextClose)) {
+      start = nextOpen
+    }
+    if (minutesOf(end) <= minutesOf(start) || minutesOf(end) > minutesOf(nextClose)) {
+      end = nextClose
+    }
+    onChange({ ...draft, site: siteCode, start, end })
   }
 
   const updateStart = (start: string) => {
@@ -107,6 +130,13 @@ export function DayEditor({
             <span className="text-stone-500">Aucune réponse pour ce jour</span>
           )}
         </div>
+        {day.answer && (
+          <p className="mt-1 text-xs font-medium text-stone-500">
+            Site :{' '}
+            {sites.find((site) => site.code === day.answer?.site)?.name ??
+              'Non renseigné'}
+          </p>
+        )}
         <p className="mt-2 text-xs text-stone-400">
           Ce jour ne peut plus être modifié après 23 h 59 la veille.
         </p>
@@ -190,6 +220,23 @@ export function DayEditor({
             )
           })}
         </div>
+
+        {draft.kind !== 'unavailable' && (
+          <label className="mt-3 block text-xs font-medium text-stone-600">
+            Site
+            <select
+              className="input mt-1 bg-white py-2"
+              value={draft.site}
+              onChange={(event) => changeSite(event.target.value as SiteCode)}
+            >
+              {sites.map((site) => (
+                <option key={site.code} value={site.code}>
+                  {site.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
 
         {draft.kind === 'slot' && (
           <div className="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-stone-50 p-3">

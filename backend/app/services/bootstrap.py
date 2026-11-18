@@ -3,11 +3,12 @@ from __future__ import annotations
 import logging
 from datetime import time
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text, update
 from sqlalchemy.orm import Session
 
 from app.config import Settings
-from app.models import AdminUser, OpeningHours
+from app.domain.sites import DEFAULT_SITE, SITES
+from app.models import AdminUser, DayAvailability, SiteOpeningHours, Volunteer
 from app.security import hash_password
 
 logger = logging.getLogger(__name__)
@@ -17,17 +18,63 @@ DEFAULT_CLOSE_TIME = time(18, 0)
 OPENING_WEEKDAYS = (1, 2, 3, 4, 5)
 
 
-def ensure_opening_hours(session: Session) -> None:
-    existing = set(session.scalars(select(OpeningHours.weekday)).all())
-    for weekday in OPENING_WEEKDAYS:
-        if weekday not in existing:
-            session.add(
-                OpeningHours(
-                    weekday=weekday,
-                    open_time=DEFAULT_OPEN_TIME,
-                    close_time=DEFAULT_CLOSE_TIME,
+def ensure_site_opening_hours(session: Session) -> None:
+    """Initialise les horaires par site, en reprenant l'ancienne table globale."""
+    existing = {
+        (row.site, row.weekday)
+        for row in session.scalars(select(SiteOpeningHours)).all()
+    }
+
+    if not any(site == DEFAULT_SITE for site, _ in existing):
+        legacy_table = session.scalar(text("SELECT to_regclass('public.opening_hours')"))
+        if legacy_table is not None:
+            legacy_rows = session.execute(
+                text("SELECT weekday, open_time, close_time FROM opening_hours")
+            ).all()
+            for row in legacy_rows:
+                session.add(
+                    SiteOpeningHours(
+                        site=DEFAULT_SITE,
+                        weekday=row.weekday,
+                        open_time=row.open_time,
+                        close_time=row.close_time,
+                    )
                 )
-            )
+                existing.add((DEFAULT_SITE, row.weekday))
+            if legacy_rows:
+                session.flush()
+
+    for site in SITES:
+        for weekday in OPENING_WEEKDAYS:
+            if (site.code, weekday) not in existing:
+                session.add(
+                    SiteOpeningHours(
+                        site=site.code,
+                        weekday=weekday,
+                        open_time=DEFAULT_OPEN_TIME,
+                        close_time=DEFAULT_CLOSE_TIME,
+                    )
+                )
+    session.commit()
+
+
+def backfill_sites(session: Session) -> None:
+    """Affecte le site historique par défaut aux données antérieures aux sites."""
+    session.execute(
+        update(Volunteer)
+        .where(Volunteer.default_site.is_(None))
+        .values(default_site=DEFAULT_SITE)
+    )
+    session.execute(
+        update(DayAvailability)
+        .where(DayAvailability.site.is_(None))
+        .values(site=DEFAULT_SITE)
+    )
+    session.execute(
+        update(AdminUser)
+        .where(AdminUser.last_site.is_(None))
+        .values(last_site=DEFAULT_SITE)
+    )
     session.commit()
 
 
@@ -63,6 +110,7 @@ def ensure_first_admin(session: Session, settings: Settings) -> None:
             email=str(settings.admin_email).lower(),
             password_hash=hash_password(settings.admin_password.get_secret_value()),
             gender=settings.admin_gender,
+            last_site=DEFAULT_SITE,
         )
     )
     session.commit()

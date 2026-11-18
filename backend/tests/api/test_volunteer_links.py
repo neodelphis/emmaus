@@ -25,7 +25,10 @@ def test_link_is_created_with_volunteer(client, admin) -> None:
     assert payload["volunteer_name"] == "Jean Martin"
     assert "email" not in payload
     assert len(payload["periods"]) == 5
-    assert len(payload["opening_hours"]) == 5
+    assert payload["default_site"] == "vaire"
+    assert [site["code"] for site in payload["sites"]] == ["vaire", "les-essarts"]
+    assert len(payload["sites"][0]["opening_hours"]) == 5
+    assert len(payload["sites"][1]["opening_hours"]) == 5
 
 
 def test_invalid_or_revoked_link_is_refused(client, admin) -> None:

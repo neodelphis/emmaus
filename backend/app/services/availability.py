@@ -20,21 +20,24 @@ from app.domain.periods import (
     validate_period_start,
     visible_period_starts,
 )
+from app.domain.sites import DEFAULT_SITE, SITES, ensure_known_site
 from app.domain.suggestions import HistoryDay, suggest_day
 from app.models import (
     AvailabilityResponse,
     DayAvailability,
     MealExclusion,
-    OpeningHours,
+    SiteOpeningHours,
     Volunteer,
 )
 from app.schemas import (
     DayAnswerOut,
+    DaySaveIn,
     DayViewOut,
     OpeningHoursOut,
     PeriodOptionOut,
     PeriodSaveIn,
     PeriodViewOut,
+    SiteWithHoursOut,
     VolunteerAccessOut,
     WeekDayOut,
     WeekViewOut,
@@ -42,11 +45,14 @@ from app.schemas import (
 )
 
 
-def load_opening_hours(session: Session) -> dict[int, OpeningHours]:
-    return {hours.weekday: hours for hours in session.scalars(select(OpeningHours)).all()}
+def load_opening_hours(session: Session, site: str) -> dict[int, SiteOpeningHours]:
+    rows = session.scalars(
+        select(SiteOpeningHours).where(SiteOpeningHours.site == site)
+    ).all()
+    return {hours.weekday: hours for hours in rows}
 
 
-def opening_hours_out(hours: dict[int, OpeningHours]) -> list[OpeningHoursOut]:
+def opening_hours_out(hours: dict[int, SiteOpeningHours]) -> list[OpeningHoursOut]:
     return [
         OpeningHoursOut(
             weekday=weekday,
@@ -57,11 +63,22 @@ def opening_hours_out(hours: dict[int, OpeningHours]) -> list[OpeningHoursOut]:
     ]
 
 
-def window_for(hours: dict[int, OpeningHours], weekday: int) -> TimeWindow | None:
+def window_for(hours: dict[int, SiteOpeningHours], weekday: int) -> TimeWindow | None:
     value = hours.get(weekday)
     if value is None:
         return None
     return TimeWindow(open_time=value.open_time, close_time=value.close_time)
+
+
+def sites_with_hours(session: Session) -> list[SiteWithHoursOut]:
+    return [
+        SiteWithHoursOut(
+            code=site.code,
+            name=site.name,
+            opening_hours=opening_hours_out(load_opening_hours(session, site.code)),
+        )
+        for site in SITES
+    ]
 
 
 def load_visible_responses(
@@ -114,8 +131,16 @@ def load_history(
     return history
 
 
-def _answer_out(day: DayAvailability) -> DayAnswerOut:
-    return DayAnswerOut(kind=day.kind, start=day.start_time, end=day.end_time)
+def _answer_out(day: DayAvailability, default_site: str) -> DayAnswerOut:
+    site = day.site or default_site
+    if site not in {info.code for info in SITES}:
+        site = DEFAULT_SITE
+    return DayAnswerOut(
+        kind=day.kind,
+        start=day.start_time,
+        end=day.end_time,
+        site=site,  # type: ignore[arg-type]
+    )
 
 
 def build_period_view(
@@ -125,6 +150,7 @@ def build_period_view(
     today: date,
     history: dict[int, list[HistoryDay]],
     with_suggestions: bool,
+    default_site: str,
 ) -> PeriodViewOut:
     day_rows = {row.day_date: row for row in response.days} if response else {}
     days: list[DayViewOut] = []
@@ -143,7 +169,7 @@ def build_period_view(
                 date=day_date,
                 weekday=weekday,
                 editable=is_day_editable(day_date, today),
-                answer=_answer_out(row) if row else None,
+                answer=_answer_out(row, default_site) if row else None,
                 suggestion=suggestion,
             )
         )
@@ -163,7 +189,8 @@ def build_volunteer_access(
     starts = visible_period_starts(today)
     responses = load_visible_responses(session, volunteer.id, starts)
     history = load_history(session, volunteer.id, today)
-    hours = load_opening_hours(session)
+    default_site = volunteer.default_site or DEFAULT_SITE
+    sites = sites_with_hours(session)
 
     periods = [
         build_period_view(
@@ -172,13 +199,15 @@ def build_volunteer_access(
             today=today,
             history=history,
             with_suggestions=True,
+            default_site=default_site,
         )
         for start in starts
     ]
     return VolunteerAccessOut(
         volunteer_name=volunteer.name,
         today=today,
-        opening_hours=opening_hours_out(hours),
+        default_site=default_site,  # type: ignore[arg-type]
+        sites=sites,
         periods=periods,
     )
 
@@ -192,6 +221,7 @@ def build_single_period_view(
         today=today,
         history={},
         with_suggestions=False,
+        default_site=volunteer.default_site or DEFAULT_SITE,
     )
 
 
@@ -219,14 +249,22 @@ def save_period(
                 status_code=409,
             )
 
-    hours = load_opening_hours(session)
+    default_site = volunteer.default_site or DEFAULT_SITE
+    site_hours = {
+        site.code: load_opening_hours(session, site.code) for site in SITES
+    }
+    normalized: list[tuple[DaySaveIn, str | None]] = []
     for item in payload.days:
+        site = None
+        if item.kind != "unavailable":
+            site = ensure_known_site(item.site or default_site)
         validate_day_answer(
             kind=item.kind,
             start=item.start,
             end=item.end,
-            window=window_for(hours, item.date.weekday()),
+            window=window_for(site_hours[site], item.date.weekday()) if site else None,
         )
+        normalized.append((item, site))
 
     response = session.scalar(
         select(AvailabilityResponse).where(
@@ -244,7 +282,7 @@ def save_period(
         session.flush()
 
     existing = {day.day_date: day for day in response.days}
-    for item in payload.days:
+    for item, site in normalized:
         row = existing.get(item.date)
         if item.kind == "unavailable":
             if row is not None:
@@ -256,6 +294,7 @@ def save_period(
         row.kind = item.kind
         row.start_time = item.start if item.kind == "slot" else None
         row.end_time = item.end if item.kind == "slot" else None
+        row.site = site
 
     response.submitted_at = utcnow()
     session.commit()
@@ -275,9 +314,11 @@ def build_week_view(
     period_start: date,
     today: date,
     *,
+    site: str,
     include_inactive: bool = False,
 ) -> WeekViewOut:
     validate_period_start(period_start)
+    ensure_known_site(site)
     starts = admin_period_options(today)
 
     query = select(Volunteer).order_by(Volunteer.name.asc(), Volunteer.created_at.asc())
@@ -320,7 +361,7 @@ def build_week_view(
             if response is None:
                 status = "unanswered"
                 start = end = None
-            elif row is None:
+            elif row is None or (row.site or DEFAULT_SITE) != site:
                 status = "unavailable"
                 start = end = None
             else:
@@ -363,7 +404,8 @@ def build_week_view(
         period_start=period_start,
         period_end=period_end(period_start),
         today=today,
-        opening_hours=opening_hours_out(load_opening_hours(session)),
+        site=site,  # type: ignore[arg-type]
+        opening_hours=opening_hours_out(load_opening_hours(session, site)),
         options=period_options,
         volunteers=week_rows,
     )

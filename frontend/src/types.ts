@@ -1,10 +1,21 @@
 export type DayKind = 'unavailable' | 'all_day' | 'slot'
 export type SavedDayKind = 'all_day' | 'slot'
+export type SiteCode = 'vaire' | 'les-essarts'
+
+export interface Site {
+  code: SiteCode
+  name: string
+}
+
+export interface SiteWithHours extends Site {
+  opening_hours: OpeningHours[]
+}
 
 export interface DayAnswer {
   kind: SavedDayKind
   start: string | null
   end: string | null
+  site: SiteCode | null
 }
 
 export interface DayView {
@@ -32,7 +43,8 @@ export interface OpeningHours {
 export interface VolunteerAccess {
   volunteer_name: string
   today: string
-  opening_hours: OpeningHours[]
+  default_site: SiteCode
+  sites: SiteWithHours[]
   periods: PeriodView[]
 }
 
@@ -40,6 +52,7 @@ export interface AdminUser {
   id: string
   email: string
   gender: 'homme' | 'femme' | null
+  last_site: SiteCode | null
 }
 
 export interface Volunteer {
@@ -47,6 +60,7 @@ export interface Volunteer {
   name: string
   email: string | null
   gender: 'homme' | 'femme' | null
+  default_site: SiteCode | null
   is_active: boolean
   has_link: boolean
   created_at: string
@@ -86,6 +100,7 @@ export interface WeekView {
   period_start: string
   period_end: string
   today: string
+  site: SiteCode
   opening_hours: OpeningHours[]
   options: PeriodOption[]
   volunteers: WeekVolunteer[]
@@ -96,11 +111,13 @@ export interface DaySavePayload {
   kind: DayKind
   start?: string
   end?: string
+  site?: SiteCode
 }
 
 export interface VolunteerPayload {
   name?: string
   email?: string | null
   gender?: 'homme' | 'femme'
+  default_site?: SiteCode
   is_active?: boolean
 }

@@ -80,6 +80,7 @@ def test_save_partial_period_and_admin_distinction(client, volunteer) -> None:
         "kind": "all_day",
         "start": None,
         "end": None,
+        "site": "vaire",
     }
     assert days["2026-11-19"]["answer"]["start"] == "09:00"
     assert days["2026-11-20"]["answer"] is None
@@ -253,6 +254,7 @@ def test_suggestions_use_four_most_recent_completed_periods(client, volunteer, d
         "kind": "all_day",
         "start": None,
         "end": None,
+        "site": None,
     }
 
 
@@ -269,12 +271,14 @@ def test_changing_opening_hours_does_not_rewrite_existing_answers(client, volunt
     )
     assert response.status_code == 200
 
-    hours = client.get("/api/admin/opening-hours").json()
+    hours = client.get("/api/admin/sites/vaire/opening-hours").json()
     for row in hours:
         if row["weekday"] == 3:  # jeudi
             row["open"] = "09:00"
             row["close"] = "16:00"
-    response = client.put("/api/admin/opening-hours", json={"hours": hours})
+    response = client.put(
+        "/api/admin/sites/vaire/opening-hours", json={"hours": hours}
+    )
     assert response.status_code == 200
 
     access = client.get("/api/volunteer", headers=headers).json()

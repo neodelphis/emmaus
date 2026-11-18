@@ -4,9 +4,10 @@ import { api, ApiError } from '../api'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { PageHeader } from '../components/ui/PageHeader'
+import { useAuth } from '../auth'
 import { useToast } from '../toast'
 import { minutesOf, weekdayLabel } from '../lib/dates'
-import type { OpeningHours } from '../types'
+import type { OpeningHours, Site, SiteCode } from '../types'
 
 function validateHours(hours: OpeningHours[]): string | null {
   for (const row of hours) {
@@ -27,16 +28,51 @@ function validateHours(hours: OpeningHours[]): string | null {
 
 export function AdminHoursPage() {
   const toast = useToast()
+  const { user, signIn } = useAuth()
+  const [sites, setSites] = useState<Site[]>([])
+  const [site, setSite] = useState<SiteCode | null>(user?.last_site ?? null)
+  const [sitesLoading, setSitesLoading] = useState(true)
   const [hours, setHours] = useState<OpeningHours[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  useEffect(() => {
+    let cancelled = false
+    setSitesLoading(true)
+    api
+      .listSites()
+      .then((list) => {
+        if (cancelled) return
+        setSites(list)
+        setSite((current) => {
+          if (current && list.some((item) => item.code === current)) return current
+          return list[0]?.code ?? null
+        })
+      })
+      .catch((caught) => {
+        if (!cancelled) {
+          setError(
+            caught instanceof ApiError
+              ? caught.message
+              : 'Les sites n’ont pas pu être chargés.',
+          )
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setSitesLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const load = useCallback(async () => {
+    if (!site) return
     setLoading(true)
     setError(null)
     try {
-      setHours(await api.getOpeningHours())
+      setHours(await api.getOpeningHours(site))
     } catch (caught) {
       setError(
         caught instanceof ApiError
@@ -46,11 +82,25 @@ export function AdminHoursPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [site])
 
   useEffect(() => {
     void load()
   }, [load])
+
+  const changeSite = async (code: SiteCode) => {
+    setSite(code)
+    try {
+      const updated = await api.updateLastSite(code)
+      signIn(updated)
+    } catch (caught) {
+      toast.error(
+        caught instanceof ApiError
+          ? caught.message
+          : 'Le site n’a pas pu être mémorisé.',
+      )
+    }
+  }
 
   const update = (weekday: number, field: 'open' | 'close', value: string) => {
     setHours((current) =>
@@ -59,6 +109,7 @@ export function AdminHoursPage() {
   }
 
   const save = async () => {
+    if (!site) return
     const validation = validateHours(hours)
     if (validation) {
       setError(validation)
@@ -67,7 +118,7 @@ export function AdminHoursPage() {
     setSaving(true)
     setError(null)
     try {
-      setHours(await api.updateOpeningHours(hours))
+      setHours(await api.updateOpeningHours(site, hours))
       toast.success('Les horaires d’ouverture ont été enregistrés.')
     } catch (caught) {
       setError(
@@ -82,16 +133,33 @@ export function AdminHoursPage() {
     <div className="space-y-5">
       <PageHeader
         title="Horaires d'ouverture"
-        description="Définissez la plage horaire dans laquelle les bénévoles peuvent proposer un créneau."
+        description={`${
+          sites.find((item) => item.code === site)?.name ?? 'Site'
+        } — définissez la plage horaire dans laquelle les bénévoles peuvent proposer un créneau.`}
         actions={
-          <Button
-            onClick={() => void save()}
-            loading={saving}
-            disabled={loading}
-            leftIcon={<Save className="h-4 w-4" />}
-          >
-            Enregistrer
-          </Button>
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+            <select
+              className="input w-full bg-white py-2 text-sm sm:w-auto"
+              aria-label="Choisir un site"
+              value={site ?? ''}
+              onChange={(event) => void changeSite(event.target.value as SiteCode)}
+              disabled={sitesLoading || sites.length === 0}
+            >
+              {sites.map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+            <Button
+              onClick={() => void save()}
+              loading={saving}
+              disabled={loading || !site}
+              leftIcon={<Save className="h-4 w-4" />}
+            >
+              Enregistrer
+            </Button>
+          </div>
         }
       />
 
