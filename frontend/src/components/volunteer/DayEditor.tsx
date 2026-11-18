@@ -147,111 +147,117 @@ export function DayEditor({
           </h3>
         </div>
 
-        <label
-          className={cn(
-            'mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-xl border px-2 py-2.5 text-sm font-medium transition',
-            draft.kind === 'all_day'
-              ? 'border-brand-600 bg-brand-50 text-brand-800 ring-1 ring-inset ring-brand-600/20'
-              : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:bg-stone-50',
-          )}
-        >
-          <input
-            type="radio"
-            name={`day-${day.date}`}
-            value="all_day"
-            checked={draft.kind === 'all_day'}
-            onChange={() => updateKind('all_day')}
-            className="sr-only"
-          />
-          <Sun
+        <div className="mt-3 grid grid-cols-3 items-stretch gap-2">
+          <label
             className={cn(
-              'h-4 w-4',
-              draft.kind === 'all_day' ? 'text-brand-700' : 'text-stone-400',
+              'flex h-full cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border px-1.5 py-2 text-center text-[10px] font-medium transition sm:text-xs',
+              draft.kind === 'all_day'
+                ? 'border-brand-600 bg-brand-50 text-brand-800 ring-1 ring-inset ring-brand-600/20'
+                : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:bg-stone-50',
             )}
-            aria-hidden
-          />
-          Toute la journée
-        </label>
+          >
+            <input
+              type="radio"
+              name={`day-${day.date}`}
+              value="all_day"
+              checked={draft.kind === 'all_day'}
+              onChange={() => updateKind('all_day')}
+              className="sr-only"
+            />
+            <Sun
+              className={cn(
+                'h-4 w-4',
+                draft.kind === 'all_day' ? 'text-brand-700' : 'text-stone-400',
+              )}
+              aria-hidden
+            />
+            <span className="whitespace-nowrap leading-tight">Toute la journée</span>
+          </label>
 
-        <div className="mt-2 grid gap-2">
-          {[
-            {
-              period: 'morning' as const,
-              label: 'Matin',
-              icon: Sunrise,
-              preset: morningPreset,
-            },
-            {
-              period: 'afternoon' as const,
-              label: 'Après-midi',
-              icon: Sunset,
-              preset: afternoonPreset,
-            },
-          ].map((option) => {
-            const Icon = option.icon
-            const selected = halfDay === option.period
-            const range =
-              selected && draft.kind === 'slot'
-                ? { start: draft.start, end: draft.end }
-                : option.preset
-            return (
-              <button
-                key={option.period}
-                type="button"
-                aria-pressed={selected}
-                onClick={() => selectHalfDay(option.period)}
-                className={cn(
-                  'flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-left transition',
-                  selected
-                    ? 'border-sky-600 bg-sky-50 text-sky-900 ring-1 ring-inset ring-sky-600/20'
-                    : 'border-stone-200 bg-white text-stone-700 hover:border-stone-300 hover:bg-stone-50',
-                )}
-              >
-                <span className="inline-flex items-center gap-2 text-sm font-medium">
-                  <Icon
-                    className={cn('h-4 w-4', selected ? 'text-sky-700' : 'text-stone-400')}
-                    aria-hidden
-                  />
-                  {option.label}
-                </span>
-                <span
+          <div className="grid gap-2">
+            {[
+              {
+                period: 'morning' as const,
+                label: 'Matin',
+                icon: Sunrise,
+                preset: morningPreset,
+              },
+              {
+                period: 'afternoon' as const,
+                label: 'Après-midi',
+                icon: Sunset,
+                preset: afternoonPreset,
+              },
+            ].map((option) => {
+              const Icon = option.icon
+              const selected = halfDay === option.period
+              const range =
+                selected && draft.kind === 'slot'
+                  ? { start: draft.start, end: draft.end }
+                  : option.preset
+              return (
+                <button
+                  key={option.period}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => selectHalfDay(option.period)}
                   className={cn(
-                    'text-xs tabular-nums',
-                    selected ? 'text-sky-700' : 'text-stone-400',
+                    'flex flex-col items-center justify-center gap-1 rounded-xl border px-1.5 py-2 text-center text-[10px] font-medium transition sm:text-xs',
+                    selected
+                      ? 'border-sky-600 bg-sky-50 text-sky-900 ring-1 ring-inset ring-sky-600/20'
+                      : 'border-stone-200 bg-white text-stone-700 hover:border-stone-300 hover:bg-stone-50',
                   )}
                 >
-                  {range.start} – {range.end}
-                </span>
-              </button>
-            )
-          })}
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap leading-tight">
+                    <Icon
+                      className={cn(
+                        'h-4 w-4',
+                        selected ? 'text-sky-700' : 'text-stone-400',
+                      )}
+                      aria-hidden
+                    />
+                    {option.label}
+                  </span>
+                  <span
+                    className={cn(
+                      'text-[10px] tabular-nums sm:text-[11px]',
+                      selected ? 'text-sky-700' : 'text-stone-400',
+                    )}
+                  >
+                    {range.start} – {range.end}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+
+          <label
+            className={cn(
+              'flex h-full cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border px-1.5 py-2 text-center text-[10px] font-medium transition sm:text-xs',
+              draft.kind === 'unavailable'
+                ? 'border-stone-400 bg-stone-100 text-stone-800 ring-1 ring-inset ring-stone-400/25'
+                : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:bg-stone-50',
+            )}
+          >
+            <input
+              type="radio"
+              name={`day-${day.date}`}
+              value="unavailable"
+              checked={draft.kind === 'unavailable'}
+              onChange={() => updateKind('unavailable')}
+              className="sr-only"
+            />
+            <XCircle
+              className={cn(
+                'h-4 w-4',
+                draft.kind === 'unavailable' ? 'text-stone-600' : 'text-stone-400',
+              )}
+              aria-hidden
+            />
+            <span className="whitespace-nowrap leading-tight">Indisponible</span>
+          </label>
         </div>
 
-        <label
-          className={cn(
-            'mt-2 flex cursor-pointer items-center justify-center gap-2 rounded-xl border px-2 py-2.5 text-sm font-medium transition',
-            draft.kind === 'unavailable'
-              ? 'border-stone-400 bg-stone-100 text-stone-800 ring-1 ring-inset ring-stone-400/25'
-              : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:bg-stone-50',
-          )}
-        >
-          <input
-            type="radio"
-            name={`day-${day.date}`}
-            value="unavailable"
-            checked={draft.kind === 'unavailable'}
-            onChange={() => updateKind('unavailable')}
-            className="sr-only"
-          />
-          <XCircle
-            className={cn(
-              'h-4 w-4',
-              draft.kind === 'unavailable' ? 'text-stone-600' : 'text-stone-400',
-            )}
-            aria-hidden
-          />
-          Indisponible
-        </label>
 
         {draft.kind !== 'unavailable' && (
           <label className="mt-3 block text-xs font-medium text-stone-600">
