@@ -63,6 +63,8 @@ export interface AdminUser {
 export interface Volunteer {
   id: string
   name: string
+  first_name: string | null
+  last_name: string | null
   email: string | null
   gender: 'homme' | 'femme' | null
   default_site: SiteCode | null
@@ -121,6 +123,8 @@ export interface DaySavePayload {
 
 export interface VolunteerPayload {
   name?: string
+  first_name?: string
+  last_name?: string
   email?: string | null
   gender?: 'homme' | 'femme'
   default_site?: SiteCode

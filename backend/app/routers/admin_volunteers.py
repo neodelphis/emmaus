@@ -55,10 +55,17 @@ def _ensure_all_day(session: Session, volunteer_id: UUID, day_date: date) -> Non
         )
 
 
+def _split_name(name: str) -> tuple[str, str | None]:
+    first, _, last = name.strip().partition(" ")
+    return first.strip(), last.strip() or None
+
+
 def _out(volunteer: Volunteer) -> VolunteerOut:
     return VolunteerOut(
         id=volunteer.id,
         name=volunteer.name,
+        first_name=volunteer.first_name,
+        last_name=volunteer.last_name,
         email=volunteer.email,
         gender=volunteer.gender,
         default_site=volunteer.default_site,  # type: ignore[arg-type]
@@ -92,8 +99,18 @@ def create_volunteer(
     session: Session = Depends(get_db),
     link_service: LinkService = Depends(get_link_service),
 ) -> VolunteerCreatedOut:
+    first_name = payload.first_name.strip() if payload.first_name else None
+    last_name = payload.last_name.strip() if payload.last_name else None
+    if first_name and last_name:
+        name = f"{first_name} {last_name}"
+    else:
+        name = payload.name.strip()
+        first_name, last_name = _split_name(name)
+
     volunteer = Volunteer(
-        name=payload.name.strip(),
+        name=name,
+        first_name=first_name,
+        last_name=last_name,
         email=str(payload.email).lower() if payload.email else None,
         gender=payload.gender,
         default_site=payload.default_site or DEFAULT_SITE,
@@ -113,8 +130,30 @@ def update_volunteer(
 ) -> VolunteerOut:
     volunteer = _get_or_404(session, volunteer_id)
     fields = payload.model_fields_set
-    if "name" in fields and payload.name is not None:
+    if "first_name" in fields or "last_name" in fields:
+        first_name = (
+            payload.first_name
+            if "first_name" in fields
+            else volunteer.first_name
+        )
+        last_name = (
+            payload.last_name
+            if "last_name" in fields
+            else volunteer.last_name
+        )
+        first_name = first_name.strip() if first_name else ""
+        last_name = last_name.strip() if last_name else ""
+        if not first_name or not last_name:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Le prénom et le nom sont obligatoires.",
+            )
+        volunteer.first_name = first_name
+        volunteer.last_name = last_name
+        volunteer.name = f"{first_name} {last_name}"
+    elif "name" in fields and payload.name is not None:
         volunteer.name = payload.name.strip()
+        volunteer.first_name, volunteer.last_name = _split_name(volunteer.name)
     if "email" in fields:
         volunteer.email = str(payload.email).lower() if payload.email else None
     if "gender" in fields and payload.gender is not None:

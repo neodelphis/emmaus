@@ -78,6 +78,18 @@ def backfill_sites(session: Session) -> None:
     session.commit()
 
 
+def backfill_volunteer_names(session: Session) -> None:
+    """Sépare le nom complet historique en prénom et nom pour les fiches existantes."""
+    volunteers = session.scalars(
+        select(Volunteer).where(Volunteer.first_name.is_(None))
+    ).all()
+    for volunteer in volunteers:
+        first, _, last = volunteer.name.strip().partition(" ")
+        volunteer.first_name = first.strip() or volunteer.name.strip()
+        volunteer.last_name = last.strip() or None
+    session.commit()
+
+
 def backfill_admin_roles(session: Session, settings: Settings) -> None:
     """Garantit que le compte administrateur initial est administrateur principal."""
     if settings.admin_email is None:

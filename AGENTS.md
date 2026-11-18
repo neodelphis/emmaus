@@ -41,6 +41,7 @@ La V1 reste développée et testée localement avec Docker Compose, PostgreSQL, 
 - Le prénom et le nom des administrateurs sont stockés sur leur compte, facultatifs, modifiables dans Compte et affichés sous le libellé de connexion dans la barre latérale.
 - Deux rôles existent : **Administrateur** (planning, bénévoles, profil) et **Administrateur principal** (ajout de comptes, modification des horaires). Le compte initial est administrateur principal ; les comptes suivants reçoivent le rôle choisi par un administrateur principal.
 - Le genre des bénévoles (`homme` / `femme`) est renseigné dans leur fiche d’administration et stocké pour permettre des accords adaptés dans les futurs messages. Les fiches existantes sans genre sont signalées « Genre à renseigner ».
+- Le prénom et le nom des bénévoles sont saisis séparément dans leur fiche ; le nom complet reste utilisé dans les plannings, les liens et les courriels.
 
 ## Workflow Git
 
