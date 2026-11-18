@@ -3,6 +3,8 @@ import {
   AlertCircle,
   CalendarDays,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Link2Off,
   Lock,
   RefreshCw,
@@ -105,6 +107,7 @@ export function VolunteerPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [invalidLink, setInvalidLink] = useState(false)
   const [selected, setSelected] = useState<string | null>(null)
+  const [periodWindow, setPeriodWindow] = useState(0)
   const [drafts, setDrafts] = useState<Record<string, DraftDay>>({})
   const [suggested, setSuggested] = useState<Set<string>>(new Set())
   const [dirty, setDirty] = useState(false)
@@ -146,6 +149,12 @@ export function VolunteerPage() {
   }, [load])
 
   useEffect(() => {
+    setPeriodWindow((current) =>
+      Math.min(current, Math.max(0, (access?.periods.length ?? 0) - 2)),
+    )
+  }, [access?.periods.length])
+
+  useEffect(() => {
     if (!access || !selected) return
     const period =
       access.periods.find((item) => item.start === selected) ?? access.periods[0]
@@ -179,6 +188,12 @@ export function VolunteerPage() {
     if (!access) return null
     return access.periods.find((item) => item.start === selected) ?? access.periods[0] ?? null
   }, [access, selected])
+
+  const visiblePeriods = useMemo(
+    () => access?.periods.slice(periodWindow, periodWindow + 2) ?? [],
+    [access, periodWindow],
+  )
+  const periodWindowMax = Math.max(0, (access?.periods.length ?? 0) - 2)
 
   const openingFor = (site: SiteCode, weekday: number) =>
     access?.sites
@@ -361,36 +376,60 @@ export function VolunteerPage() {
             </div>
           </div>
 
-          <div className="-mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-2">
-            {access.periods.map((item) => {
-              const isSelected = item.start === period.start
-              return (
-                <button
-                  key={item.start}
-                  type="button"
-                  onClick={() => selectPeriod(item.start)}
-                  aria-pressed={isSelected}
-                  className={cn(
-                    'min-w-[9.5rem] shrink-0 rounded-xl border px-3 py-2 text-left transition',
-                    isSelected
-                      ? 'border-brand-700 bg-brand-700 text-white shadow-sm'
-                      : 'border-stone-200 bg-white text-stone-700 hover:border-stone-300 hover:bg-stone-50',
-                  )}
-                >
-                  <span className="block text-xs font-semibold">
-                    {formatPeriodChip(item.start, access.today)}
-                  </span>
-                  <span
+          <div className="-mx-1 mt-4 flex items-stretch gap-2 px-1">
+            {periodWindow > 0 && (
+              <button
+                type="button"
+                aria-label="Afficher les semaines précédentes"
+                onClick={() => setPeriodWindow((current) => Math.max(0, current - 1))}
+                className="flex w-8 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-500 transition hover:border-stone-300 hover:bg-stone-50"
+              >
+                <ChevronLeft className="h-4 w-4" aria-hidden />
+              </button>
+            )}
+            <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
+              {visiblePeriods.map((item) => {
+                const isSelected = item.start === period.start
+                return (
+                  <button
+                    key={item.start}
+                    type="button"
+                    onClick={() => selectPeriod(item.start)}
+                    aria-pressed={isSelected}
                     className={cn(
-                      'mt-0.5 block text-[11px]',
-                      isSelected ? 'text-brand-100' : 'text-stone-400',
+                      'min-w-0 rounded-xl border px-2.5 py-2 text-left transition',
+                      isSelected
+                        ? 'border-brand-700 bg-brand-700 text-white shadow-sm'
+                        : 'border-stone-200 bg-white text-stone-700 hover:border-stone-300 hover:bg-stone-50',
                     )}
                   >
-                    {formatShortDate(item.start)} – {formatShortDate(item.end)}
-                  </span>
-                </button>
-              )
-            })}
+                    <span className="block text-[11px] font-semibold leading-tight sm:text-xs">
+                      {formatPeriodChip(item.start, access.today)}
+                    </span>
+                    <span
+                      className={cn(
+                        'mt-0.5 block truncate text-[10px] sm:text-[11px]',
+                        isSelected ? 'text-brand-100' : 'text-stone-400',
+                      )}
+                    >
+                      {formatShortDate(item.start)} – {formatShortDate(item.end)}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+            {periodWindow < periodWindowMax && (
+              <button
+                type="button"
+                aria-label="Afficher les semaines suivantes"
+                onClick={() =>
+                  setPeriodWindow((current) => Math.min(periodWindowMax, current + 1))
+                }
+                className="flex w-8 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-500 transition hover:border-stone-300 hover:bg-stone-50"
+              >
+                <ChevronRight className="h-4 w-4" aria-hidden />
+              </button>
+            )}
           </div>
 
           {period.submitted_at && (

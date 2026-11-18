@@ -100,7 +100,9 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
     empilés au centre, **Indisponible** à droite. Les horaires des demi-journées
     apparaissent et restent ajustables après sélection.
     Les valeurs initiales sont 08:00–12:00 et 14:00–18:00, adaptées aux horaires du site ;
-    les données restent un créneau continu unique.
+    les données restent un créneau continu unique. La sélection des périodes affiche
+    deux semaines à la fois : un chevron droit décale la fenêtre, et un chevron gauche
+    apparaît dès que la semaine en cours n’est plus visible.
 18. **Planning par demi-journées.** La vue administration présente une carte par jour,
     avec deux listes : **Matin** (avant 13:00) et **Après-midi** (dès 13:00). Chaque
     bénévole y figure avec ses horaires réels, sans positionnement horaire, afin de rester
