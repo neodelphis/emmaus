@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import date
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
@@ -8,7 +9,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.deps import get_db, get_email_service, get_link_service, require_admin
-from app.models import Volunteer
+from app.models import (
+    AvailabilityResponse,
+    DayAvailability,
+    MealExclusion,
+    Volunteer,
+)
 from app.schemas import (
     LinkOut,
     VolunteerCreatedOut,
@@ -26,6 +32,26 @@ router = APIRouter(
     tags=["administration — bénévoles"],
     dependencies=[Depends(require_admin)],
 )
+
+
+def _ensure_all_day(session: Session, volunteer_id: UUID, day_date: date) -> None:
+    day = session.scalar(
+        select(DayAvailability.id)
+        .join(
+            AvailabilityResponse,
+            AvailabilityResponse.id == DayAvailability.response_id,
+        )
+        .where(
+            AvailabilityResponse.volunteer_id == volunteer_id,
+            DayAvailability.day_date == day_date,
+            DayAvailability.kind == "all_day",
+        )
+    )
+    if day is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Ce bénévole n’est pas disponible toute la journée à cette date.",
+        )
 
 
 def _out(volunteer: Volunteer) -> VolunteerOut:
@@ -179,3 +205,48 @@ def send_link(
         ) from exc
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
+
+@router.put(
+    "/{volunteer_id}/meal-exclusions/{day_date}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def exclude_from_meal(
+    volunteer_id: UUID,
+    day_date: date,
+    session: Session = Depends(get_db),
+) -> Response:
+    volunteer = _get_or_404(session, volunteer_id)
+    _ensure_all_day(session, volunteer.id, day_date)
+
+    existing = session.scalar(
+        select(MealExclusion).where(
+            MealExclusion.volunteer_id == volunteer.id,
+            MealExclusion.day_date == day_date,
+        )
+    )
+    if existing is None:
+        session.add(MealExclusion(volunteer_id=volunteer.id, day_date=day_date))
+        session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.delete(
+    "/{volunteer_id}/meal-exclusions/{day_date}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def include_in_meal(
+    volunteer_id: UUID,
+    day_date: date,
+    session: Session = Depends(get_db),
+) -> Response:
+    volunteer = _get_or_404(session, volunteer_id)
+    existing = session.scalar(
+        select(MealExclusion).where(
+            MealExclusion.volunteer_id == volunteer.id,
+            MealExclusion.day_date == day_date,
+        )
+    )
+    if existing is not None:
+        session.delete(existing)
+        session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

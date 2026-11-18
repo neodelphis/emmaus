@@ -153,6 +153,7 @@ class WeekDayOut(BaseModel):
     status: Literal["unanswered", "unavailable", "all_day", "slot"]
     start: TimeOfDay | None = None
     end: TimeOfDay | None = None
+    meal_excluded: bool = False
 
 
 class WeekVolunteerOut(BaseModel):
