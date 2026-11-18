@@ -25,21 +25,24 @@ import {
 } from '../lib/dates'
 import { cn } from '../lib/cn'
 import { useHashToken } from '../lib/token'
-import type { OpeningHours, PeriodView, VolunteerAccess } from '../types'
+import type {
+  PeriodView,
+  SiteCode,
+  SiteWithHours,
+  VolunteerAccess,
+} from '../types'
 
 function buildDrafts(
   period: PeriodView,
-  hours: OpeningHours[],
+  sites: SiteWithHours[],
+  defaultSite: SiteCode,
 ): { drafts: Record<string, DraftDay>; suggested: string[] } {
-  const byWeekday = new Map(hours.map((item) => [item.weekday, item]))
+  const siteByCode = new Map(sites.map((item) => [item.code, item]))
   const drafts: Record<string, DraftDay> = {}
   const suggested: string[] = []
 
   for (const day of period.days) {
     if (!day.editable) continue
-    const window = byWeekday.get(day.weekday)
-    const open = window?.open ?? '08:00'
-    const close = window?.close ?? '18:00'
 
     let answer = day.answer
     let fromSuggestion = false
@@ -48,15 +51,23 @@ function buildDrafts(
       fromSuggestion = true
     }
 
+    const site = answer?.site ?? defaultSite
+    const window = siteByCode
+      .get(site)
+      ?.opening_hours.find((item) => item.weekday === day.weekday)
+    const open = window?.open ?? '08:00'
+    const close = window?.close ?? '18:00'
+
     if (answer) {
       drafts[day.date] = {
         kind: answer.kind,
         start: answer.start ?? open,
         end: answer.end ?? close,
+        site,
       }
       if (fromSuggestion) suggested.push(day.date)
     } else {
-      drafts[day.date] = { kind: 'unavailable', start: open, end: close }
+      drafts[day.date] = { kind: 'unavailable', start: open, end: close, site }
     }
   }
   return { drafts, suggested }
@@ -143,7 +154,7 @@ export function VolunteerPage() {
     if (selected !== period.start) {
       setSelected(period.start)
     }
-    const built = buildDrafts(period, access.opening_hours)
+    const built = buildDrafts(period, access.sites, access.default_site)
     setDrafts(built.drafts)
     setSuggested(new Set(built.suggested))
     setDirty(false)
@@ -170,9 +181,10 @@ export function VolunteerPage() {
     return access.periods.find((item) => item.start === selected) ?? access.periods[0] ?? null
   }, [access, selected])
 
-  const openingByWeekday = useMemo(() => {
-    return new Map((access?.opening_hours ?? []).map((item) => [item.weekday, item]))
-  }, [access])
+  const openingFor = (site: SiteCode, weekday: number) =>
+    access?.sites
+      .find((item) => item.code === site)
+      ?.opening_hours.find((item) => item.weekday === weekday)
 
   const editableDays = useMemo(
     () => period?.days.filter((day) => day.editable) ?? [],
@@ -253,13 +265,14 @@ export function VolunteerPage() {
         return { date: day.date, kind: 'unavailable' as const }
       }
       if (draft.kind === 'all_day') {
-        return { date: day.date, kind: 'all_day' as const }
+        return { date: day.date, kind: 'all_day' as const, site: draft.site }
       }
       return {
         date: day.date,
         kind: 'slot' as const,
         start: draft.start,
         end: draft.end,
+        site: draft.site,
       }
     })
     if (days.length === 0) {
@@ -314,6 +327,11 @@ export function VolunteerPage() {
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-brand-100/80">
               Indiquez vos disponibilités pour les périodes de service du mardi au samedi.
               Chaque jour reste modifiable jusqu'à 23 h 59 la veille.
+            </p>
+            <p className="mt-2 text-xs text-brand-200/80">
+              Site par défaut :{' '}
+              {access.sites.find((item) => item.code === access.default_site)?.name ??
+                access.default_site}
             </p>
           </div>
         </div>
@@ -404,12 +422,19 @@ export function VolunteerPage() {
                   <DayEditor
                     key={day.date}
                     day={day}
-                    draft={draft ?? {
-                      kind: 'unavailable',
-                      start: '08:00',
-                      end: '18:00',
-                    }}
-                    opening={openingByWeekday.get(day.weekday)}
+                    draft={
+                      draft ?? {
+                        kind: 'unavailable',
+                        start: '08:00',
+                        end: '18:00',
+                        site: access.default_site,
+                      }
+                    }
+                    opening={openingFor(
+                      draft?.site ?? access.default_site,
+                      day.weekday,
+                    )}
+                    sites={access.sites}
                     submitted={period.submitted}
                     suggested={false}
                     onChange={() => undefined}
@@ -421,7 +446,8 @@ export function VolunteerPage() {
                   key={day.date}
                   day={day}
                   draft={draft}
-                  opening={openingByWeekday.get(day.weekday)}
+                  opening={openingFor(draft.site, day.weekday)}
+                  sites={access.sites}
                   submitted={period.submitted}
                   suggested={suggested.has(day.date)}
                   onChange={(value) => updateDay(day.date, value)}

@@ -121,8 +121,13 @@ def main() -> int:
             f"{API_URL}/api/volunteer", headers={"X-Volunteer-Token": token}
         )
         periods = access["periods"]
-        if len(periods) < 1 or len(access["opening_hours"]) != 5:
-            raise RuntimeError("Les périodes ou horaires renvoyés sont incomplets.")
+        sites = access.get("sites", [])
+        if (
+            len(periods) < 1
+            or len(sites) != 2
+            or any(len(site.get("opening_hours", [])) != 5 for site in sites)
+        ):
+            raise RuntimeError("Les périodes, sites ou horaires renvoyés sont incomplets.")
         period = periods[0]
         editable = [day for day in period["days"] if day["editable"]]
         if not editable:

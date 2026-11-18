@@ -3,6 +3,8 @@ import type {
   DaySavePayload,
   OpeningHours,
   PeriodView,
+  Site,
+  SiteCode,
   Volunteer,
   VolunteerAccess,
   VolunteerCreated,
@@ -86,6 +88,12 @@ export const api = {
       body: JSON.stringify({ gender }),
     })
   },
+  updateLastSite(site: SiteCode) {
+    return request<AdminUser>('/api/admin/auth/last-site', {
+      method: 'PUT',
+      body: JSON.stringify({ site }),
+    })
+  },
   forgotPassword(email: string) {
     return request<{ message: string }>(
       '/api/admin/auth/forgot-password',
@@ -120,6 +128,7 @@ export const api = {
     name: string
     email?: string | null
     gender?: 'homme' | 'femme'
+    default_site?: SiteCode
   }) {
     return request<VolunteerCreated>('/api/admin/volunteers', json(payload))
   },
@@ -163,18 +172,22 @@ export const api = {
   },
 
   // Administration — semaine et horaires
-  getWeek(periodStart?: string, includeInactive = false) {
+  getWeek(periodStart?: string, site?: SiteCode, includeInactive = false) {
     const params = new URLSearchParams()
     if (periodStart) params.set('period_start', periodStart)
+    if (site) params.set('site', site)
     if (includeInactive) params.set('include_inactive', 'true')
     const query = params.toString()
     return request<WeekView>(`/api/admin/week${query ? `?${query}` : ''}`)
   },
-  getOpeningHours() {
-    return request<OpeningHours[]>('/api/admin/opening-hours')
+  listSites() {
+    return request<Site[]>('/api/admin/sites')
   },
-  updateOpeningHours(hours: OpeningHours[]) {
-    return request<OpeningHours[]>('/api/admin/opening-hours', {
+  getOpeningHours(site: SiteCode) {
+    return request<OpeningHours[]>(`/api/admin/sites/${site}/opening-hours`)
+  },
+  updateOpeningHours(site: SiteCode, hours: OpeningHours[]) {
+    return request<OpeningHours[]>(`/api/admin/sites/${site}/opening-hours`, {
       method: 'PUT',
       body: JSON.stringify({ hours }),
     })

@@ -28,6 +28,7 @@ from app.domain.periods import (
     today_paris,
     visible_period_starts,
 )
+from app.domain.sites import DEFAULT_SITE
 from app.models import AvailabilityResponse, DayAvailability, Volunteer
 from app.services.links import LinkService
 
@@ -48,6 +49,8 @@ def _add_response(
     days: dict[int, tuple[DayKind, time | None, time | None]],
     *,
     submitted_at: datetime,
+    site: str = DEFAULT_SITE,
+    site_overrides: dict[int, str] | None = None,
 ) -> None:
     response = AvailabilityResponse(
         volunteer_id=volunteer.id,
@@ -65,6 +68,7 @@ def _add_response(
                 kind=kind,
                 start_time=start,
                 end_time=end,
+                site=(site_overrides or {}).get(offset, site),
             )
         )
 
@@ -97,31 +101,37 @@ def seed_demo() -> list[tuple[str, str, bool]]:
                 name="Marie Dupont",
                 email=f"marie.dupont{DEMO_DOMAIN}",
                 gender="femme",
+                default_site="vaire",
             ),
             "jean": Volunteer(
                 name="Jean Martin",
                 email=f"jean.martin{DEMO_DOMAIN}",
                 gender="homme",
+                default_site="vaire",
             ),
             "fatima": Volunteer(
                 name="Fatima Benali",
                 email=f"fatima.benali{DEMO_DOMAIN}",
                 gender="femme",
+                default_site="les-essarts",
             ),
             "paul": Volunteer(
                 name="Paul Durand",
                 email=f"paul.durand{DEMO_DOMAIN}",
                 gender="homme",
+                default_site="vaire",
             ),
             "karim": Volunteer(
                 name="Karim Haddad",
                 email=f"karim.haddad{DEMO_DOMAIN}",
                 gender="homme",
+                default_site="les-essarts",
             ),
             "ancien": Volunteer(
                 name="Ancien Bénévole",
                 email=f"ancien.benevole{DEMO_DOMAIN}",
                 gender="homme",
+                default_site="vaire",
                 is_active=False,
             ),
         }
@@ -179,6 +189,7 @@ def seed_demo() -> list[tuple[str, str, bool]]:
                 4: ("all_day", None, None),
             },
             submitted_at=utcnow(),
+            site_overrides={3: "les-essarts"},
         )
 
         # Fatima : aucune réponse ni historique, pour le cas « sans réponse ».

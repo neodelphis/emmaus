@@ -18,6 +18,7 @@ import {
   type PlanningDay,
   type PlanningEntry,
 } from '../components/admin/WeekPlanning'
+import { useAuth } from '../auth'
 import { useToast } from '../toast'
 import { cn } from '../lib/cn'
 import { MEAL_LABEL } from '../lib/meal'
@@ -30,7 +31,7 @@ import {
   parseIsoDate,
   weekdayShort,
 } from '../lib/dates'
-import type { WeekView } from '../types'
+import type { Site, SiteCode, WeekView } from '../types'
 
 function availableCount(day: PlanningDay): number {
   return day.allDay.length + day.slots.length
@@ -44,6 +45,10 @@ interface MealRemovalTarget {
 
 export function AdminWeekPage() {
   const toast = useToast()
+  const { user, signIn } = useAuth()
+  const [sites, setSites] = useState<Site[]>([])
+  const [site, setSite] = useState<SiteCode | null>(user?.last_site ?? null)
+  const [sitesLoading, setSitesLoading] = useState(true)
   const [requestedPeriod, setRequestedPeriod] = useState<string | null>(null)
   const [mealRemoval, setMealRemoval] = useState<MealRemovalTarget | null>(null)
   const [mealBusy, setMealBusy] = useState(false)
@@ -54,12 +59,43 @@ export function AdminWeekPage() {
   const [mobileWeekday, setMobileWeekday] = useState<number | null>(null)
   const loadSequence = useRef(0)
 
+  useEffect(() => {
+    let cancelled = false
+    setSitesLoading(true)
+    api
+      .listSites()
+      .then((list) => {
+        if (cancelled) return
+        setSites(list)
+        setSite((current) => {
+          if (current && list.some((item) => item.code === current)) return current
+          return list[0]?.code ?? null
+        })
+      })
+      .catch((caught) => {
+        if (!cancelled) {
+          setError(
+            caught instanceof ApiError
+              ? caught.message
+              : 'Les sites n’ont pas pu être chargés.',
+          )
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setSitesLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const load = useCallback(async () => {
+    if (!site) return
     const sequence = ++loadSequence.current
     setLoading(true)
     setError(null)
     try {
-      const week = await api.getWeek(requestedPeriod ?? undefined)
+      const week = await api.getWeek(requestedPeriod ?? undefined, site)
       if (sequence === loadSequence.current) setData(week)
     } catch (caught) {
       if (sequence === loadSequence.current) {
@@ -72,7 +108,7 @@ export function AdminWeekPage() {
     } finally {
       if (sequence === loadSequence.current) setLoading(false)
     }
-  }, [requestedPeriod])
+  }, [requestedPeriod, site])
 
   useEffect(() => {
     void load()
@@ -147,6 +183,21 @@ export function AdminWeekPage() {
   ).length
   const total = data?.volunteers.length ?? 0
   const periodLabel = data ? formatPeriodRange(data.period_start, data.period_end) : ''
+  const siteName = sites.find((item) => item.code === site)?.name
+
+  const changeSite = async (code: SiteCode) => {
+    setSite(code)
+    try {
+      const updated = await api.updateLastSite(code)
+      signIn(updated)
+    } catch (caught) {
+      toast.error(
+        caught instanceof ApiError
+          ? caught.message
+          : 'Le site n’a pas pu être mémorisé.',
+      )
+    }
+  }
 
   const desktopDays = useMemo(
     () =>
@@ -199,9 +250,26 @@ export function AdminWeekPage() {
     <div className="space-y-5">
       <PageHeader
         title="Planning de la semaine"
-        description={periodLabel ? `Semaine ${periodLabel}` : 'Chargement de la semaine…'}
+        description={
+          periodLabel
+            ? `${siteName ? `${siteName} — ` : ''}Semaine ${periodLabel}`
+            : 'Chargement de la semaine…'
+        }
         actions={
           <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+            <select
+              className="input w-full bg-white py-2 text-sm sm:w-auto"
+              aria-label="Choisir un site"
+              value={site ?? ''}
+              onChange={(event) => void changeSite(event.target.value as SiteCode)}
+              disabled={sitesLoading || sites.length === 0}
+            >
+              {sites.map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
             <select
               className="input w-full bg-white py-2 text-sm sm:w-auto"
               aria-label="Choisir une période"

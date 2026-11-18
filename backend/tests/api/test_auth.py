@@ -6,7 +6,7 @@ from tests.conftest import login
 
 
 def test_admin_endpoints_require_authentication(client) -> None:
-    for path in ("/api/admin/volunteers", "/api/admin/week", "/api/admin/opening-hours"):
+    for path in ("/api/admin/volunteers", "/api/admin/week", "/api/admin/sites"):
         response = client.get(path)
         assert response.status_code == 401
 

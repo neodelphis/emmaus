@@ -28,6 +28,10 @@ class AdminUser(Base):
             "gender IS NULL OR gender IN ('homme', 'femme')",
             name="admin_gender_allowed",
         ),
+        CheckConstraint(
+            "last_site IS NULL OR last_site IN ('vaire', 'les-essarts')",
+            name="admin_last_site_allowed",
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -36,6 +40,7 @@ class AdminUser(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255))
     gender: Mapped[str | None] = mapped_column(String(8))
+    last_site: Mapped[str | None] = mapped_column(String(16))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, nullable=False
     )
@@ -75,6 +80,10 @@ class Volunteer(Base):
             "gender IS NULL OR gender IN ('homme', 'femme')",
             name="volunteer_gender_allowed",
         ),
+        CheckConstraint(
+            "default_site IS NULL OR default_site IN ('vaire', 'les-essarts')",
+            name="volunteer_default_site_allowed",
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -83,6 +92,7 @@ class Volunteer(Base):
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     email: Mapped[str | None] = mapped_column(String(255))
     gender: Mapped[str | None] = mapped_column(String(8))
+    default_site: Mapped[str | None] = mapped_column(String(16))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     # Le jeton n'est jamais stocké en clair : empreinte pour la recherche,
     # copie chiffrée pour permettre à l'administration de renvoyer le lien.
@@ -154,6 +164,10 @@ class DayAvailability(Base):
             "start_time IS NULL OR end_time IS NULL OR start_time < end_time",
             name="day_slot_ordered",
         ),
+        CheckConstraint(
+            "site IS NULL OR site IN ('vaire', 'les-essarts')",
+            name="day_site_allowed",
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -166,6 +180,7 @@ class DayAvailability(Base):
     kind: Mapped[str] = mapped_column(String(16))
     start_time: Mapped[time | None] = mapped_column(Time)
     end_time: Mapped[time | None] = mapped_column(Time)
+    site: Mapped[str | None] = mapped_column(String(16))
 
     response: Mapped[AvailabilityResponse] = relationship(back_populates="days")
 
@@ -200,15 +215,21 @@ class MealExclusion(Base):
     volunteer: Mapped[Volunteer] = relationship(back_populates="meal_exclusions")
 
 
-class OpeningHours(Base):
-    """Heures d'ouverture pour un jour de la semaine (1 = mardi, 5 = samedi)."""
+class SiteOpeningHours(Base):
+    """Heures d'ouverture par site et par jour (1 = mardi, 5 = samedi)."""
 
-    __tablename__ = "opening_hours"
+    __tablename__ = "site_opening_hours"
     __table_args__ = (
-        CheckConstraint("weekday BETWEEN 1 AND 5", name="opening_weekday_range"),
-        CheckConstraint("open_time < close_time", name="opening_times_ordered"),
+        CheckConstraint(
+            "site IN ('vaire', 'les-essarts')", name="site_opening_site_allowed"
+        ),
+        CheckConstraint("weekday BETWEEN 1 AND 5", name="site_opening_weekday_range"),
+        CheckConstraint(
+            "open_time < close_time", name="site_opening_times_ordered"
+        ),
     )
 
+    site: Mapped[str] = mapped_column(String(16), primary_key=True)
     weekday: Mapped[int] = mapped_column(SmallInteger, primary_key=True)
     open_time: Mapped[time] = mapped_column(Time, nullable=False)
     close_time: Mapped[time] = mapped_column(Time, nullable=False)

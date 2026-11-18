@@ -30,7 +30,7 @@ from app.deps import get_today  # noqa: E402
 from app.main import create_app  # noqa: E402
 from app.models import AdminUser  # noqa: E402
 from app.security import hash_password  # noqa: E402
-from app.services.bootstrap import ensure_opening_hours  # noqa: E402
+from app.services.bootstrap import ensure_site_opening_hours  # noqa: E402
 from app.services.emails import EmailService  # noqa: E402
 
 TABLES = (
@@ -39,7 +39,7 @@ TABLES = (
     "availability_responses",
     "volunteers",
     "admin_users",
-    "opening_hours",
+    "site_opening_hours",
 )
 
 
@@ -89,7 +89,7 @@ def clean_database(client, engine):
         session.execute(text(f"TRUNCATE TABLE {', '.join(TABLES)} RESTART IDENTITY CASCADE"))
         session.commit()
     with Session(engine) as session:
-        ensure_opening_hours(session)
+        ensure_site_opening_hours(session)
     yield
 
 

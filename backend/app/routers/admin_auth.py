@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings
 from app.deps import get_db, get_email_service, get_settings, require_admin
+from app.domain.sites import DEFAULT_SITE
 from app.models import AdminUser, PasswordResetToken
 from app.schemas import (
     AdminOut,
@@ -17,6 +18,7 @@ from app.schemas import (
     LoginIn,
     MessageOut,
     ResetPasswordIn,
+    UpdateLastSiteIn,
     UpdateMeIn,
 )
 from app.security import (
@@ -84,6 +86,18 @@ def logout() -> Response:
 
 @router.get("/me", response_model=AdminOut)
 def me(admin: AdminUser = Depends(require_admin)) -> AdminOut:
+    return AdminOut.model_validate(admin)
+
+
+@router.put("/last-site", response_model=AdminOut)
+def update_last_site(
+    payload: UpdateLastSiteIn,
+    admin: AdminUser = Depends(require_admin),
+    session: Session = Depends(get_db),
+) -> AdminOut:
+    admin.last_site = payload.site
+    session.commit()
+    session.refresh(admin)
     return AdminOut.model_validate(admin)
 
 
@@ -200,6 +214,7 @@ def create_administrator(
         email=email,
         password_hash=hash_password(payload.password),
         gender=payload.gender,
+        last_site=DEFAULT_SITE,
     )
     session.add(admin)
     session.commit()
