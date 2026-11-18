@@ -347,14 +347,18 @@ export function VolunteerPage() {
                 {formatPeriodRange(period.start, period.end)}
               </h2>
             </div>
-            {period.submitted ? (
-              <Badge tone="green">
-                <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-                Réponse enregistrée
-              </Badge>
-            ) : (
-              <Badge tone="amber">À renseigner</Badge>
-            )}
+            <div aria-live="polite">
+              {dirty ? (
+                <Badge tone="amber">Modifications non enregistrées</Badge>
+              ) : period.submitted ? (
+                <Badge tone="green">
+                  <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+                  Réponse enregistrée
+                </Badge>
+              ) : (
+                <Badge tone="amber">À renseigner</Badge>
+              )}
+            </div>
           </div>
 
           <div className="-mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-2">
