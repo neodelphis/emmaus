@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import smtplib
+import ssl
 from email.message import EmailMessage
 from email.utils import formataddr, parseaddr
 
@@ -29,12 +30,33 @@ class EmailService:
         message.set_content(text)
 
         try:
-            with smtplib.SMTP(
-                self.settings.smtp_host,
-                self.settings.smtp_port,
-                timeout=self.settings.smtp_timeout_seconds,
-            ) as smtp:
+            if self.settings.smtp_use_ssl:
+                smtp_client = smtplib.SMTP_SSL(
+                    self.settings.smtp_host,
+                    self.settings.smtp_port,
+                    timeout=self.settings.smtp_timeout_seconds,
+                    context=ssl.create_default_context(),
+                )
+            else:
+                smtp_client = smtplib.SMTP(
+                    self.settings.smtp_host,
+                    self.settings.smtp_port,
+                    timeout=self.settings.smtp_timeout_seconds,
+                )
+
+            with smtp_client as smtp:
+                if self.settings.smtp_username or self.settings.smtp_password:
+                    if not self.settings.smtp_username or not self.settings.smtp_password:
+                        raise EmailDeliveryError(
+                            "SMTP_USERNAME et SMTP_PASSWORD doivent être définis ensemble."
+                        )
+                    smtp.login(
+                        self.settings.smtp_username,
+                        self.settings.smtp_password.get_secret_value(),
+                    )
                 smtp.send_message(message)
+        except EmailDeliveryError:
+            raise
         except (OSError, smtplib.SMTPException) as exc:
             # Ne jamais journaliser le contenu du message ni l'adresse du destinataire.
             logger.warning("Échec de l'envoi d'un courriel (%s).", type(exc).__name__)

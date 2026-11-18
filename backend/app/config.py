@@ -29,6 +29,9 @@ class Settings(BaseSettings):
 
     smtp_host: str = "mailhog"
     smtp_port: int = 1025
+    smtp_username: str | None = None
+    smtp_password: SecretStr | None = None
+    smtp_use_ssl: bool = False
     smtp_from: str = "Emmaus <ne-pas-repondre@emmaus.local>"
     smtp_timeout_seconds: int = 5
 

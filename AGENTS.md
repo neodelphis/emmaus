@@ -4,7 +4,7 @@
 
 Cette application Emmaüs permet aux bénévoles de déclarer leurs disponibilités pour des périodes de service du mardi au samedi. Avant toute modification fonctionnelle, consulter la feuille de route dans [`roadmaps/version-de-travail.md`](roadmaps/version-de-travail.md) et respecter ses règles métier.
 
-La V1 est locale : Docker Compose, PostgreSQL, FastAPI, React/Vite et MailHog. Les déploiements distants via GitHub Actions sont une évolution ultérieure, pas une tâche implicite de la V1.
+La V1 reste développée et testée localement avec Docker Compose, PostgreSQL, FastAPI, React/Vite et MailHog. Un déploiement staging est préparé via GitHub Actions, GHCR et Traefik (voir `docs/DEPLOYMENT_STAGING.md`) ; la production et les workflows de release ne font pas partie de ce périmètre.
 
 ## Règles métier à préserver
 
@@ -29,7 +29,7 @@ La V1 est locale : Docker Compose, PostgreSQL, FastAPI, React/Vite et MailHog. L
 - Générer les jetons avec un générateur cryptographiquement sûr, les protéger au repos et ne jamais les écrire dans les journaux. Ne pas exposer les données d’un autre bénévole via un lien individuel.
 - Protéger les mots de passe et les opérations d’administration avec les mécanismes de sécurité adaptés ; appliquer les permissions côté serveur, pas seulement dans l’interface.
 - Ne pas journaliser les mots de passe, jetons ou données personnelles inutiles.
-- Garder MailHog pour les courriels de développement local. Ne pas configurer un fournisseur de production ou un déploiement distant sans instruction explicite.
+- Garder MailHog pour les courriels de développement local. Le staging utilise le SMTP OVH configuré dans `.env.staging` ; ne pas exposer ses identifiants.
 
 ## Interface et langue
 

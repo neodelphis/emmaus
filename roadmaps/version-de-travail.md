@@ -117,7 +117,13 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
     modification des horaires sont réservées au rôle principal, et les entrées Horaires
     et gestion des comptes sont masquées aux administrateurs standards. La colonne est
     ajoutée aux bases existantes par un `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`.
-20. **Planning par demi-journées.** La vue administration présente une carte par jour,
+20. **Déploiement staging.** Le workflow `.github/workflows/deploy-staging.yml`
+    exécute les tests/lint, publie les images backend/frontend sur GHCR, puis déploie
+    via SSH sur le VPS derrière Traefik. Le Compose `docker-compose.staging.yml`
+    utilise une base PostgreSQL interne, le SMTP OVH pour les courriels et un seul
+    routeur public HTTPS. L’environnement GitHub `staging` porte les secrets SSH ; le fichier
+    `.env.staging` reste uniquement sur le serveur. La production reste hors périmètre.
+21. **Planning par demi-journées.** La vue administration présente une carte par jour,
     avec deux listes : **Matin** (avant 13:00) et **Après-midi** (dès 13:00). Chaque
     bénévole y figure avec ses horaires réels, sans positionnement horaire, afin de rester
     lisible avec une quinzaine de personnes par créneau. Un créneau qui chevauche 13:00
@@ -131,7 +137,7 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
 
 ## Validation effectuée
 
-- `pytest` : 71 tests backend, exécutés dans le conteneur API avec PostgreSQL.
+- `pytest` : 72 tests backend, exécutés dans le conteneur API avec PostgreSQL.
 - `ruff check app tests` : aucune erreur.
 - `npm run lint` : aucune erreur ni avertissement.
 - `npm run build` : compilation TypeScript et build Vite réussis.
@@ -160,6 +166,9 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
   vérification Chromium de l’affichage sous « Connecté » dans la barre latérale.
 - Rôles administrateur : tests API des accès autorisés/interdits et vérification
   Chromium des interfaces Administrateur et Administrateur principal.
+- Déploiement staging : `docker compose --env-file .env.staging.example -f
+  docker-compose.staging.yml config` et `actionlint` validés localement ; premier
+  déploiement à effectuer après configuration des secrets et du serveur.
 - Interface bénévole : vérification Chromium des jours clôturés masqués, du bandeau
   d'information retiré, des options Matin/Après-midi empilées et des horaires ajustables.
 - Genre des bénévoles : tests API sur la création, la modification, l'absence de genre
