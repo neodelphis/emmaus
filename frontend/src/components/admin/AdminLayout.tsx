@@ -19,7 +19,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { to: '/admin/semaine', label: 'Vue de la semaine', shortLabel: 'Semaine', icon: CalendarDays },
+  { to: '/admin/semaine', label: 'Planning de la semaine', shortLabel: 'Planning', icon: CalendarDays },
   { to: '/admin/benevoles', label: 'Bénévoles', shortLabel: 'Bénévoles', icon: Users },
   { to: '/admin/horaires', label: 'Horaires', shortLabel: 'Horaires', icon: Clock3 },
   { to: '/admin/compte', label: 'Compte', shortLabel: 'Compte', icon: UserCog },

@@ -340,6 +340,8 @@ def build_week_view(
     return WeekViewOut(
         period_start=period_start,
         period_end=period_end(period_start),
+        today=today,
+        opening_hours=opening_hours_out(load_opening_hours(session)),
         options=period_options,
         volunteers=week_rows,
     )

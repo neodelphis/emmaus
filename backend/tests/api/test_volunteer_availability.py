@@ -87,7 +87,10 @@ def test_save_partial_period_and_admin_distinction(client, volunteer) -> None:
 
     response = client.get("/api/admin/week?period_start=2026-11-17")
     assert response.status_code == 200
-    row = next(r for r in response.json()["volunteers"] if r["id"] == volunteer["id"])
+    week = response.json()
+    assert week["today"] == "2026-11-17"
+    assert len(week["opening_hours"]) == 5
+    row = next(r for r in week["volunteers"] if r["id"] == volunteer["id"])
     assert row["submitted"] is True
     statuses = {day["date"]: day["status"] for day in row["days"]}
     assert statuses["2026-11-17"] == "unavailable"

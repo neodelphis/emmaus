@@ -65,6 +65,13 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
     devra mettre à jour ce document, le README et les configurations.
 12. **Image de build frontend.** Le build utilise `node:24-bookworm-slim` et non Alpine :
     le binaire natif de Rollup employé par Vite échoue sur musl avec la version actuelle.
+13. **Planning hebdomadaire.** La vue administration est un planning : une colonne par
+    jour, une échelle horaire, des blocs pour les créneaux et un bandeau « toute la
+    journée ». Les bénévoles sans réponse sont listés dans un encart distinct et ne sont
+    jamais comptés comme indisponibles ; le nombre d'indisponibles est rappelé par jour.
+    Sur mobile, un sélecteur de jour affiche une journée à la fois ; sur ordinateur, les
+    cinq colonnes sont visibles et un filtre permet d'isoler un jour. Les horaires
+    d'ouverture servent d'échelle et les plages hors ouverture sont grisées.
 
 ## Validation effectuée
 
@@ -74,10 +81,10 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
 - `npm run build` : compilation TypeScript et build Vite réussis.
 - `python scripts/smoke_test.py` : API, PostgreSQL, MailHog et Nginx validés de bout en
   bout sur une pile reconstruite depuis un volume vierge.
-- Vérifications Chromium (bureau et mobile) : connexion, semaine et filtres, création,
-  modification et suppression d'un bénévole, enregistrement d'une disponibilité,
-  modification des horaires, création d'un compte administrateur et réinitialisation de
-  mot de passe.
+- Vérifications Chromium (bureau et mobile) : connexion, planning par colonnes, filtre
+  par jour, sélecteur mobile, création, modification et suppression d'un bénévole,
+  enregistrement d'une disponibilité, modification des horaires, création d'un compte
+  administrateur et réinitialisation de mot de passe.
 - Jeu de démonstration `app.seed_demo` vérifié sur les cinq profils bénévoles et le cas
   du lien désactivé ; les liens sont affichés à l'exécution et ne sont pas versionnés.
 
@@ -104,8 +111,9 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
   par courriel, invalidation des sessions, premier compte initialisé par `.env`.
 - API et interface bénévole : lien personnel, périodes mardi–samedi, clôture à 23 h 59 la
   veille, jour vide / toute la journée / créneau de 30 minutes, propositions historiques.
-- Administration : bénévoles, liens (copie, envoi, révocation, régénération), vue
-  hebdomadaire avec non-répondants, filtres par jour, horaires, comptes administrateurs.
+- Administration : bénévoles, liens (copie, envoi, révocation, régénération), planning
+  hebdomadaire par jour avec blocs de créneaux, non-répondants distincts, filtres par
+  jour, horaires, comptes administrateurs.
 - Validation : 56 tests backend, lint, build, test de fumée Docker et vérifications
   navigateur mobile/bureau.
 
@@ -117,7 +125,7 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
 2. **Historique des propositions** : seules les périodes **achevées** (samedi antérieur à
    aujourd'hui) sont utilisées. Confirmez-vous que la période en cours ne doit jamais
    servir d'historique, même pour préremplir une période future ?
-3. **Bénévoles désactivés** : ils sont masqués par défaut dans la vue hebdomadaire et
+3. **Bénévoles désactivés** : ils sont masqués par défaut dans le planning et
    accessibles via la case « Inclure les bénévoles désactivés ». Ce choix convient-il ?
 4. **Vue historique** : l'administration peut consulter les quatre périodes passées, la
    période courante et les périodes ouvertes. Faut-il remonter plus loin en V1 ?

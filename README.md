@@ -3,7 +3,11 @@
 Application locale permettant aux bénévoles de déclarer leurs disponibilités pour les
 périodes de service du **mardi au samedi**, sans créer de compte : chacun reçoit un lien
 personnel sécurisé. Une interface d'administration gère les bénévoles, les liens, les
-horaires d'ouverture et la vue hebdomadaire des réponses.
+horaires d'ouverture et le planning hebdomadaire des réponses.
+
+Le planning affiche une colonne par jour, des blocs pour les créneaux horaires et un
+bandeau pour les disponibilités « toute la journée ». Les bénévoles sans réponse restent
+signalés séparément des jours laissés indisponibles.
 
 La feuille de route fonctionnelle est dans
 [`roadmaps/feuille-de-route-initiale.md`](roadmaps/feuille-de-route-initiale.md) et son

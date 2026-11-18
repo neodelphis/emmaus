@@ -173,6 +173,8 @@ class PeriodOptionOut(BaseModel):
 class WeekViewOut(BaseModel):
     period_start: date
     period_end: date
+    today: date
+    opening_hours: list[OpeningHoursOut]
     options: list[PeriodOptionOut]
     volunteers: list[WeekVolunteerOut]
 

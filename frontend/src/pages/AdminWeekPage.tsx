@@ -1,146 +1,36 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   AlertTriangle,
   CalendarDays,
   CheckCircle2,
-  Clock3,
-  HelpCircle,
   RefreshCw,
-  Sun,
   UserRoundX,
   Users,
-  XCircle,
 } from 'lucide-react'
 import { api, ApiError } from '../api'
-import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { EmptyState } from '../components/ui/EmptyState'
 import { PageHeader } from '../components/ui/PageHeader'
+import {
+  WeekPlanning,
+  type PlanningDay,
+  type PlanningEntry,
+} from '../components/admin/WeekPlanning'
 import { cn } from '../lib/cn'
 import {
   WEEKDAYS,
   addDays,
-  formatDayDate,
   formatPeriodRange,
   formatShortDate,
-  formatTimeRange,
+  parseIsoDate,
   weekdayShort,
 } from '../lib/dates'
-import type { WeekStatus, WeekVolunteer, WeekView, WeekDay } from '../types'
+import type { WeekView } from '../types'
 
-const statusStyles: Record<WeekStatus, string> = {
-  all_day: 'border-brand-200 bg-brand-50 text-brand-800',
-  slot: 'border-sky-200 bg-sky-50 text-sky-800',
-  unavailable: 'border-stone-200 bg-stone-50 text-stone-500',
-  unanswered: 'border-amber-200 bg-amber-50 text-amber-800',
-}
-
-function statusLabel(day: WeekDay): string {
-  if (day.status === 'all_day') return 'Toute la journée'
-  if (day.status === 'slot') return formatTimeRange(day.start, day.end)
-  if (day.status === 'unavailable') return 'Indisponible'
-  return 'Sans réponse'
-}
-
-function StatusIcon({ status }: { status: WeekStatus }) {
-  if (status === 'all_day') return <Sun className="h-3.5 w-3.5" aria-hidden />
-  if (status === 'slot') return <Clock3 className="h-3.5 w-3.5" aria-hidden />
-  if (status === 'unavailable') return <XCircle className="h-3.5 w-3.5" aria-hidden />
-  return <HelpCircle className="h-3.5 w-3.5" aria-hidden />
-}
-
-function DayCell({ day, compact }: { day: WeekDay; compact: boolean }) {
-  return (
-    <div
-      className={cn(
-        'flex flex-col items-start gap-1 rounded-xl border px-2.5 py-2',
-        statusStyles[day.status],
-        compact && 'min-h-[4.5rem]',
-      )}
-    >
-      <span className="text-[11px] font-semibold uppercase tracking-wide opacity-70">
-        {weekdayShort(day.weekday)}
-      </span>
-      <span className="inline-flex items-center gap-1 text-xs font-medium leading-tight">
-        <StatusIcon status={day.status} />
-        {statusLabel(day)}
-      </span>
-    </div>
-  )
-}
-
-function VolunteerWeekCard({
-  volunteer,
-  visibleDays,
-}: {
-  volunteer: WeekVolunteer
-  visibleDays: WeekDay[]
-}) {
-  const initials = volunteer.name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join('')
-
-  return (
-    <Card className="overflow-visible">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-stone-100 px-4 py-3.5">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-800">
-            {initials || '?'}
-          </span>
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="truncate font-semibold text-stone-900">{volunteer.name}</p>
-              {!volunteer.is_active && <Badge tone="stone">Désactivé</Badge>}
-            </div>
-            <p className="truncate text-xs text-stone-400">
-              {volunteer.email || 'Sans courriel'}
-            </p>
-          </div>
-        </div>
-        {volunteer.submitted ? (
-          <Badge tone="green">
-            <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-            Réponse reçue
-          </Badge>
-        ) : (
-          <Badge tone="amber">
-            <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
-            Sans réponse
-          </Badge>
-        )}
-      </div>
-
-      {!volunteer.submitted && (
-        <div className="flex items-start gap-2 border-b border-amber-100 bg-amber-50/60 px-4 py-2.5 text-xs leading-relaxed text-amber-900">
-          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-          <p>
-            Aucune réponse n'a été soumise pour cette période. Ce n'est pas la même chose
-            qu'une journée laissée indisponible.
-          </p>
-        </div>
-      )}
-
-      <div
-        className={cn(
-          'grid gap-2 p-3 sm:p-4',
-          visibleDays.length === 1
-            ? 'grid-cols-1'
-            : visibleDays.length === 2
-              ? 'grid-cols-2'
-              : 'grid-cols-2 sm:grid-cols-5',
-        )}
-      >
-        {visibleDays.map((day) => (
-          <DayCell key={day.date} day={day} compact />
-        ))}
-      </div>
-    </Card>
-  )
+function availableCount(day: PlanningDay): number {
+  return day.allDay.length + day.slots.length
 }
 
 export function AdminWeekPage() {
@@ -150,21 +40,26 @@ export function AdminWeekPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [dayFilter, setDayFilter] = useState<number | null>(null)
+  const [mobileWeekday, setMobileWeekday] = useState<number | null>(null)
+  const loadSequence = useRef(0)
 
   const load = useCallback(async () => {
+    const sequence = ++loadSequence.current
     setLoading(true)
     setError(null)
     try {
       const week = await api.getWeek(requestedPeriod ?? undefined, includeInactive)
-      setData(week)
+      if (sequence === loadSequence.current) setData(week)
     } catch (caught) {
-      setError(
-        caught instanceof ApiError
-          ? caught.message
-          : 'La semaine n’a pas pu être chargée.',
-      )
+      if (sequence === loadSequence.current) {
+        setError(
+          caught instanceof ApiError
+            ? caught.message
+            : 'La semaine n’a pas pu être chargée.',
+        )
+      }
     } finally {
-      setLoading(false)
+      if (sequence === loadSequence.current) setLoading(false)
     }
   }, [requestedPeriod, includeInactive])
 
@@ -180,33 +75,84 @@ export function AdminWeekPage() {
     }))
   }, [data])
 
-  const visibleDays = useMemo(() => {
-    if (!data) return []
-    const source = data.volunteers[0]?.days
-    return source
-      ? dayFilter
-        ? source.filter((day) => day.weekday === dayFilter)
-        : source
-      : []
-  }, [data, dayFilter])
-
-  const filteredVolunteers = useMemo(() => {
-    if (!data) return []
-    return [...data.volunteers].sort((left, right) => {
-      if (left.submitted !== right.submitted) return left.submitted ? 1 : -1
-      return left.name.localeCompare(right.name, 'fr')
-    })
+  const openingByWeekday = useMemo(() => {
+    return new Map((data?.opening_hours ?? []).map((item) => [item.weekday, item]))
   }, [data])
 
-  const answered = data?.volunteers.filter((volunteer) => volunteer.submitted).length ?? 0
+  const planningDays = useMemo<PlanningDay[]>(() => {
+    if (!data) return []
+    return weekDays.map(({ date, weekday }) => {
+      const allDay: PlanningEntry[] = []
+      const slots: PlanningEntry[] = []
+      let unavailableCount = 0
+
+      for (const volunteer of data.volunteers) {
+        const day = volunteer.days.find((item) => item.weekday === weekday)
+        if (!day || day.status === 'unanswered') continue
+        const entry: PlanningEntry = {
+          id: volunteer.id,
+          name: volunteer.name,
+          email: volunteer.email,
+          isActive: volunteer.is_active,
+          start: day.start,
+          end: day.end,
+        }
+        if (day.status === 'all_day') allDay.push(entry)
+        else if (day.status === 'slot') slots.push(entry)
+        else unavailableCount += 1
+      }
+
+      return {
+        date,
+        weekday,
+        opening: openingByWeekday.get(weekday) ?? null,
+        allDay,
+        slots,
+        unavailableCount,
+        isClosed: date <= data.today,
+      }
+    })
+  }, [data, openingByWeekday, weekDays])
+
+  useEffect(() => {
+    if (!data || weekDays.length === 0) return
+    setMobileWeekday((current) => {
+      if (current && weekDays.some((day) => day.weekday === current)) {
+        return current
+      }
+      const todayInWeek =
+        data.today >= data.period_start && data.today <= data.period_end
+      if (todayInWeek) {
+        const weekday = parseIsoDate(data.today).getDay() - 1
+        if (weekDays.some((day) => day.weekday === weekday)) return weekday
+      }
+      return weekDays[0]?.weekday ?? null
+    })
+  }, [data, weekDays])
+
+  const unanswered = useMemo(
+    () => (data?.volunteers ?? []).filter((volunteer) => !volunteer.submitted),
+    [data],
+  )
+  const answeredCount = (data?.volunteers.length ?? 0) - unanswered.length
   const total = data?.volunteers.length ?? 0
-  const unanswered = total - answered
   const periodLabel = data ? formatPeriodRange(data.period_start, data.period_end) : ''
+
+  const desktopDays = useMemo(
+    () =>
+      dayFilter
+        ? planningDays.filter((day) => day.weekday === dayFilter)
+        : planningDays,
+    [dayFilter, planningDays],
+  )
+  const mobileDay =
+    planningDays.find((day) => day.weekday === mobileWeekday) ?? planningDays[0]
+  const hasInactive = (data?.volunteers ?? []).some((volunteer) => !volunteer.is_active)
 
   return (
     <div className="space-y-5">
       <PageHeader
-        title="Vue de la semaine"
+        title="Planning de la semaine"
         description={periodLabel ? `Semaine ${periodLabel}` : 'Chargement de la semaine…'}
         actions={
           <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
@@ -262,79 +208,67 @@ export function AdminWeekPage() {
             Réessayer
           </Button>
         </Card>
-      ) : (
-        <>
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            <div className="card flex flex-col items-center justify-center gap-1 p-3 text-center sm:flex-row sm:justify-start sm:gap-3 sm:p-4 sm:text-left">
-              <span className="hidden h-10 w-10 items-center justify-center rounded-xl bg-stone-100 text-stone-600 sm:flex">
-                <Users className="h-5 w-5" aria-hidden />
-              </span>
-              <div>
-                <p className="text-xl font-bold leading-none text-stone-900 sm:text-2xl">{total}</p>
-                <p className="mt-1 text-[10px] leading-tight text-stone-500 sm:text-xs">
-                  bénévoles affichés
-                </p>
+      ) : loading && !data ? (
+        <Card className="p-4" aria-busy="true">
+          <div className="grid grid-cols-5 gap-2">
+            {[0, 1, 2, 3, 4].map((index) => (
+              <div key={index} className="space-y-2">
+                <div className="h-14 animate-pulse rounded-lg bg-stone-100" />
+                <div className="h-[26rem] animate-pulse rounded-lg bg-stone-100" />
               </div>
-            </div>
-            <div className="card flex flex-col items-center justify-center gap-1 p-3 text-center sm:flex-row sm:justify-start sm:gap-3 sm:p-4 sm:text-left">
-              <span className="hidden h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-700 sm:flex">
-                <CheckCircle2 className="h-5 w-5" aria-hidden />
-              </span>
-              <div>
-                <p className="text-xl font-bold leading-none text-stone-900 sm:text-2xl">{answered}</p>
-                <p className="mt-1 text-[10px] leading-tight text-stone-500 sm:text-xs">
-                  réponses reçues
-                </p>
-              </div>
-            </div>
-            <div className="card flex flex-col items-center justify-center gap-1 p-3 text-center sm:flex-row sm:justify-start sm:gap-3 sm:p-4 sm:text-left">
-              <span className="hidden h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700 sm:flex">
-                <UserRoundX className="h-5 w-5" aria-hidden />
-              </span>
-              <div>
-                <p className="text-xl font-bold leading-none text-stone-900 sm:text-2xl">{unanswered}</p>
-                <p className="mt-1 text-[10px] leading-tight text-stone-500 sm:text-xs">
-                  sans réponse
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-stone-400">
-              <CalendarDays className="h-3.5 w-3.5" aria-hidden />
-              Filtrer par jour
-            </span>
-            <button
-              type="button"
-              onClick={() => setDayFilter(null)}
-              className={cn(
-                'rounded-full border px-3 py-1 text-xs font-medium transition',
-                dayFilter === null
-                  ? 'border-brand-700 bg-brand-700 text-white'
-                  : 'border-stone-200 bg-white text-stone-600 hover:bg-stone-50',
-              )}
-            >
-              Tous
-            </button>
-            {weekDays.map((day) => (
-              <button
-                key={day.date}
-                type="button"
-                onClick={() => setDayFilter(day.weekday)}
-                className={cn(
-                  'rounded-full border px-3 py-1 text-xs font-medium transition',
-                  dayFilter === day.weekday
-                    ? 'border-brand-700 bg-brand-700 text-white'
-                    : 'border-stone-200 bg-white text-stone-600 hover:bg-stone-50',
-                )}
-              >
-                {weekdayShort(day.weekday).replace('.', '')}
-              </button>
             ))}
           </div>
+        </Card>
+      ) : (
+        <>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-stone-600">
+            <span className="inline-flex items-center gap-1.5">
+              <Users className="h-4 w-4 text-stone-400" aria-hidden />
+              <strong className="font-semibold text-stone-900">{total}</strong>
+              bénévole{total > 1 ? 's' : ''}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4 text-brand-600" aria-hidden />
+              <strong className="font-semibold text-stone-900">{answeredCount}</strong>
+              réponse{answeredCount > 1 ? 's' : ''}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <AlertTriangle className="h-4 w-4 text-amber-600" aria-hidden />
+              <strong className="font-semibold text-stone-900">{unanswered.length}</strong>
+              sans réponse
+            </span>
+          </div>
 
-          {filteredVolunteers.length === 0 ? (
+          {unanswered.length > 0 ? (
+            <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <UserRoundX className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" aria-hidden />
+              <div className="min-w-0 text-sm text-amber-900">
+                <p className="font-semibold">
+                  {unanswered.length} bénévole{unanswered.length > 1 ? 's' : ''} sans
+                  réponse pour cette période
+                </p>
+                <p className="mt-0.5 text-xs leading-relaxed text-amber-800">
+                  Ils ne sont pas comptés comme indisponibles. Sans réponse :{' '}
+                  {unanswered.map((volunteer) => volunteer.name).join(' · ')}.
+                </p>
+              </div>
+              <Link
+                to="/admin/benevoles"
+                className="ml-auto hidden shrink-0 text-xs font-semibold text-amber-900 underline-offset-2 hover:underline sm:block"
+              >
+                Gérer les bénévoles
+              </Link>
+            </div>
+          ) : (
+            total > 0 && (
+              <div className="flex items-center gap-2 rounded-xl border border-brand-100 bg-brand-50 px-4 py-2.5 text-sm text-brand-800">
+                <CheckCircle2 className="h-4 w-4" aria-hidden />
+                Tous les bénévoles affichés ont répondu pour cette période.
+              </div>
+            )
+          )}
+
+          {total === 0 ? (
             <EmptyState
               icon={Users}
               title="Aucun bénévole à afficher"
@@ -349,35 +283,136 @@ export function AdminWeekPage() {
               }
             />
           ) : (
-            <div className="space-y-3">
-              {filteredVolunteers.map((volunteer) => {
-                const days = dayFilter
-                  ? volunteer.days.filter((day) => day.weekday === dayFilter)
-                  : volunteer.days
-                return (
-                  <VolunteerWeekCard
-                    key={volunteer.id}
-                    volunteer={volunteer}
-                    visibleDays={days.length > 0 ? days : visibleDays}
-                  />
-                )
-              })}
-            </div>
-          )}
+            <>
+              <div className="hidden xl:block">
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <span className="mr-1 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-stone-400">
+                    <CalendarDays className="h-3.5 w-3.5" aria-hidden />
+                    Filtrer par jour
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setDayFilter(null)}
+                    aria-pressed={dayFilter === null}
+                    className={cn(
+                      'rounded-full border px-3 py-1 text-xs font-medium transition',
+                      dayFilter === null
+                        ? 'border-brand-700 bg-brand-700 text-white'
+                        : 'border-stone-200 bg-white text-stone-600 hover:bg-stone-50',
+                    )}
+                  >
+                    Tous
+                  </button>
+                  {planningDays.map((day) => (
+                    <button
+                      key={day.date}
+                      type="button"
+                      onClick={() => setDayFilter(day.weekday)}
+                      aria-pressed={dayFilter === day.weekday}
+                      className={cn(
+                        'rounded-full border px-3 py-1 text-xs font-medium transition',
+                        dayFilter === day.weekday
+                          ? 'border-brand-700 bg-brand-700 text-white'
+                          : 'border-stone-200 bg-white text-stone-600 hover:bg-stone-50',
+                      )}
+                    >
+                      {weekdayShort(day.weekday).replace('.', '')}
+                      <span
+                        className={cn(
+                          'ml-1.5 rounded-full px-1.5 py-0.5 text-[10px]',
+                          dayFilter === day.weekday
+                            ? 'bg-white/15 text-white'
+                            : 'bg-stone-100 text-stone-500',
+                        )}
+                      >
+                        {availableCount(day)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <WeekPlanning
+                  days={desktopDays}
+                  single={desktopDays.length === 1}
+                />
+              </div>
 
-          {visibleDays.length === 0 && data && data.volunteers.length > 0 && (
-            <p className="text-center text-xs text-stone-400">
-              Aucun jour à afficher pour ce filtre.
-            </p>
-          )}
+              <div className="xl:hidden">
+                <div className="mb-2 grid grid-cols-5 gap-1.5">
+                  {planningDays.map((day) => {
+                    const selected = mobileDay?.weekday === day.weekday
+                    return (
+                      <button
+                        key={day.date}
+                        type="button"
+                        onClick={() => setMobileWeekday(day.weekday)}
+                        aria-pressed={selected}
+                        className={cn(
+                          'flex flex-col items-center rounded-xl border px-1 py-2 text-center transition',
+                          selected
+                            ? 'border-brand-700 bg-brand-700 text-white shadow-sm'
+                            : 'border-stone-200 bg-white text-stone-600 hover:bg-stone-50',
+                        )}
+                      >
+                        <span className="text-[11px] font-semibold leading-tight">
+                          {weekdayShort(day.weekday).replace('.', '')}
+                        </span>
+                        <span
+                          className={cn(
+                            'text-[10px] leading-tight',
+                            selected ? 'text-brand-100' : 'text-stone-400',
+                          )}
+                        >
+                          {formatShortDate(day.date)}
+                        </span>
+                        <span
+                          className={cn(
+                            'mt-0.5 text-[10px] font-medium leading-tight',
+                            selected ? 'text-white' : 'text-brand-700',
+                          )}
+                        >
+                          {availableCount(day)} dispo.
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+                {mobileDay && <WeekPlanning days={[mobileDay]} single />}
+              </div>
 
-          <p className="text-center text-xs text-stone-400">
-            {data?.volunteers[0]
-              ? `Semaine du ${formatDayDate(data.volunteers[0].days[0].date)} au ${formatDayDate(
-                  data.volunteers[0].days[4].date,
-                )}`
-              : null}
-          </p>
+              <div className="space-y-2 pt-1">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-stone-500">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-sm bg-brand-200" />
+                    Toute la journée
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-sm bg-sky-200" />
+                    Créneau
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-sm bg-stone-200" />
+                    Indisponible (non affiché)
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-sm bg-amber-200" />
+                    Sans réponse
+                  </span>
+                  {hasInactive && (
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-2.5 w-2.5 rounded-sm border border-dashed border-stone-400" />
+                      Désactivé
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] leading-relaxed text-stone-400">
+                  Chaque bloc représente un bénévole disponible. Les bénévoles
+                  indisponibles ne sont pas affichés : leur nombre est indiqué dans
+                  l'en-tête de chaque jour. Les bénévoles sans réponse sont signalés
+                  séparément et ne sont jamais comptés comme indisponibles.
+                </p>
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

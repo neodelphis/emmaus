@@ -82,6 +82,8 @@ export interface PeriodOption {
 export interface WeekView {
   period_start: string
   period_end: string
+  today: string
+  opening_hours: OpeningHours[]
   options: PeriodOption[]
   volunteers: WeekVolunteer[]
 }
