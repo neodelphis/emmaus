@@ -284,8 +284,18 @@ docker/initdb/       création de la base de test
 scripts/             test de fumée Docker
 ```
 
+## Déploiement staging
+
+Le staging est déployé sur `emmaus-staging.neodelphis.ovh` via GitHub Actions,
+GHCR et Traefik. Le workflow exécute les tests et le lint, construit les images,
+puis les déploie sur le serveur par SSH.
+
+La procédure complète (DNS, secrets GitHub, clé SSH, `.env.staging`, premier
+déploiement, MailHog et rollback) est décrite dans
+[`docs/DEPLOYMENT_STAGING.md`](docs/DEPLOYMENT_STAGING.md).
+
 ## Hors périmètre de la V1
 
-Déploiement distant et workflows GitHub Actions, rappels automatiques, export des
-disponibilités, rôles administratifs multiples, interface multilingue, plusieurs créneaux
-par jour et gestion de plusieurs fuseaux horaires.
+Déploiement de production, workflows de release/tag, sauvegardes automatisées,
+rappels automatiques, export des disponibilités, interface multilingue, plusieurs
+créneaux par jour et gestion de plusieurs fuseaux horaires.

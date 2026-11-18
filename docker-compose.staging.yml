@@ -1,0 +1,137 @@
+# Déploiement staging derrière Traefik.
+#
+# Les images sont construites et publiées sur GHCR par
+# .github/workflows/deploy-staging.yml. Le serveur ne compile rien :
+# il récupère les images et redémarre la pile.
+#
+# Fichiers à préparer sur le serveur :
+#   .env.staging          (secrets, jamais versionné)
+#   docker-compose.staging.yml (copié par la CI)
+#
+# Utilisation manuelle sur le serveur :
+#   docker compose --env-file .env.staging -f docker-compose.staging.yml pull
+#   docker compose --env-file .env.staging -f docker-compose.staging.yml up -d --no-build
+
+name: emmaus-staging
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: emmaus-staging-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?Définir POSTGRES_USER dans .env.staging}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Définir POSTGRES_PASSWORD dans .env.staging}
+      POSTGRES_DB: ${POSTGRES_DB:?Définir POSTGRES_DB dans .env.staging}
+      TZ: Europe/Paris
+    volumes:
+      - emmaus_staging_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks:
+      - default
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "10"
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: emmaus-staging-mailhog
+    restart: unless-stopped
+    # Accessible uniquement en local sur le serveur, via un tunnel SSH.
+    ports:
+      - "127.0.0.1:8025:8025"
+    networks:
+      - default
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  api:
+    image: ghcr.io/neodelphis/emmaus/backend:${IMAGE_TAG:-staging}
+    container_name: emmaus-staging-api
+    restart: unless-stopped
+    environment:
+      APP_ENV: staging
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:?Définir POSTGRES_USER dans .env.staging}:${POSTGRES_PASSWORD:?Définir POSTGRES_PASSWORD dans .env.staging}@db:5432/${POSTGRES_DB:?Définir POSTGRES_DB dans .env.staging}
+      SECRET_KEY: ${SECRET_KEY:?Définir SECRET_KEY dans .env.staging}
+      FRONTEND_URL: ${FRONTEND_URL:?Définir FRONTEND_URL dans .env.staging}
+      SMTP_HOST: mailhog
+      SMTP_PORT: "1025"
+      SMTP_FROM: ${SMTP_FROM:-Emmaus staging <ne-pas-repondre@emmaus.local>}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?Définir ADMIN_EMAIL dans .env.staging}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Définir ADMIN_PASSWORD dans .env.staging}
+      ADMIN_GENDER: ${ADMIN_GENDER:-}
+      COOKIE_SECURE: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "8000"
+    networks:
+      - default
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)"
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "10"
+
+  web:
+    image: ghcr.io/neodelphis/emmaus/frontend:${IMAGE_TAG:-staging}
+    container_name: emmaus-staging-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    expose:
+      - "80"
+    networks:
+      - default
+      - proxy-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: proxy-net
+      traefik.http.routers.emmaus-staging.rule: "Host(`emmaus-staging.neodelphis.ovh`)"
+      traefik.http.routers.emmaus-staging.entrypoints: websecure
+      traefik.http.routers.emmaus-staging.tls: "true"
+      traefik.http.routers.emmaus-staging.tls.certresolver: letsencrypt
+      traefik.http.routers.emmaus-staging.service: emmaus-staging
+      traefik.http.services.emmaus-staging.loadbalancer.server.port: "80"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+networks:
+  default:
+  proxy-net:
+    external: true
+
+volumes:
+  emmaus_staging_postgres_data:
+    name: emmaus_staging_postgres_data

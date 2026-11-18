@@ -4,7 +4,7 @@
 
 Cette application Emmaüs permet aux bénévoles de déclarer leurs disponibilités pour des périodes de service du mardi au samedi. Avant toute modification fonctionnelle, consulter la feuille de route dans [`roadmaps/version-de-travail.md`](roadmaps/version-de-travail.md) et respecter ses règles métier.
 
-La V1 est locale : Docker Compose, PostgreSQL, FastAPI, React/Vite et MailHog. Les déploiements distants via GitHub Actions sont une évolution ultérieure, pas une tâche implicite de la V1.
+La V1 reste développée et testée localement avec Docker Compose, PostgreSQL, FastAPI, React/Vite et MailHog. Un déploiement staging est préparé via GitHub Actions, GHCR et Traefik (voir `docs/DEPLOYMENT_STAGING.md`) ; la production et les workflows de release ne font pas partie de ce périmètre.
 
 ## Règles métier à préserver
 
