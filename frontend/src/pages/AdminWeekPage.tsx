@@ -34,7 +34,6 @@ function availableCount(day: PlanningDay): number {
 
 export function AdminWeekPage() {
   const [requestedPeriod, setRequestedPeriod] = useState<string | null>(null)
-  const [includeInactive, setIncludeInactive] = useState(false)
   const [data, setData] = useState<WeekView | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -47,7 +46,7 @@ export function AdminWeekPage() {
     setLoading(true)
     setError(null)
     try {
-      const week = await api.getWeek(requestedPeriod ?? undefined, includeInactive)
+      const week = await api.getWeek(requestedPeriod ?? undefined)
       if (sequence === loadSequence.current) setData(week)
     } catch (caught) {
       if (sequence === loadSequence.current) {
@@ -60,7 +59,7 @@ export function AdminWeekPage() {
     } finally {
       if (sequence === loadSequence.current) setLoading(false)
     }
-  }, [requestedPeriod, includeInactive])
+  }, [requestedPeriod])
 
   useEffect(() => {
     void load()
@@ -144,7 +143,6 @@ export function AdminWeekPage() {
   )
   const mobileDay =
     planningDays.find((day) => day.weekday === mobileWeekday) ?? planningDays[0]
-  const hasInactive = (data?.volunteers ?? []).some((volunteer) => !volunteer.is_active)
 
   return (
     <div className="space-y-5">
@@ -178,24 +176,6 @@ export function AdminWeekPage() {
           </div>
         }
       />
-
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-stone-600">
-          <input
-            type="checkbox"
-            className="h-4 w-4 rounded border-stone-300 text-brand-700 focus:ring-brand-600"
-            checked={includeInactive}
-            onChange={(event) => setIncludeInactive(event.target.checked)}
-          />
-          Inclure les bénévoles désactivés
-        </label>
-        {loading && data && (
-          <span className="inline-flex items-center gap-1.5 text-xs text-stone-400">
-            <RefreshCw className="h-3.5 w-3.5 animate-spin" aria-hidden />
-            Mise à jour…
-          </span>
-        )}
-      </div>
 
       {error ? (
         <Card className="p-6 text-center">
@@ -346,7 +326,7 @@ export function AdminWeekPage() {
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-stone-500">
                   <span className="inline-flex items-center gap-1.5">
                     <span className="h-2.5 w-2.5 rounded-sm bg-brand-200" />
-                    Toute la journée (vert, repris dans les listes)
+                    Toute la journée
                   </span>
                   <span className="inline-flex items-center gap-1.5">
                     <span className="h-2.5 w-2.5 rounded-sm bg-sky-200" />
@@ -356,19 +336,13 @@ export function AdminWeekPage() {
                     <span className="h-2.5 w-2.5 rounded-sm bg-stone-200" />
                     Indisponible (non affiché)
                   </span>
-                  {hasInactive && (
-                    <span className="inline-flex items-center gap-1.5">
-                      <span className="h-2.5 w-2.5 rounded-sm border border-dashed border-stone-400" />
-                      Désactivé
-                    </span>
-                  )}
                 </div>
                 <p className="text-[11px] leading-relaxed text-stone-400">
                   Les bénévoles sont listés par demi-journée. Un créneau qui chevauche
                   13:00 apparaît dans les deux listes avec ses horaires réels. Les
-                  journées entières sont affichées en vert en haut et reprises dans les
-                  deux listes. Les bénévoles indisponibles ne sont pas listés : leur
-                  nombre est indiqué dans l'en-tête de chaque jour.
+                  journées entières apparaissent sur fond vert dans les deux listes. Les
+                  bénévoles indisponibles ne sont pas listés : leur nombre est indiqué
+                  dans l'en-tête de chaque jour.
                 </p>
               </div>
             </>

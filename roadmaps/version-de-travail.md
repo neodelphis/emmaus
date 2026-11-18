@@ -71,12 +71,13 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
     avec deux listes : **Matin** (avant 13:00) et **Après-midi** (dès 13:00). Chaque
     bénévole y figure avec ses horaires réels, sans positionnement horaire, afin de rester
     lisible avec une quinzaine de personnes par créneau. Un créneau qui chevauche 13:00
-    apparaît dans les deux listes. Les journées entières sont affichées dans un bandeau
-    vert en haut de chaque jour **et** reprises dans les deux listes. Les bénévoles sans
-    réponse ne sont plus signalés dans cette vue (demande explicite de l'utilisateur) ; le
-    nombre d'indisponibles ayant répondu est rappelé par jour. Sur mobile, un sélecteur de
-    jour affiche une journée à la fois ; sur ordinateur, les cinq cartes sont visibles et
-    un filtre permet d'isoler un jour.
+    apparaît dans les deux listes. Les journées entières apparaissent sur fond vert dans
+    les deux listes, sans bandeau séparé en haut de la journée. Les bénévoles sans réponse
+    ne sont plus signalés dans cette vue (demande explicite de l'utilisateur) ; le nombre
+    d'indisponibles ayant répondu est rappelé par jour. Sur mobile, un sélecteur de jour
+    affiche une journée à la fois ; sur ordinateur, les cinq cartes sont visibles et un
+    filtre permet d'isoler un jour. Le filtre d'inclusion des bénévoles désactivés a été
+    retiré : seuls les bénévoles actifs apparaissent dans le planning.
 
 ## Validation effectuée
 
@@ -135,20 +136,18 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
 2. **Historique des propositions** : seules les périodes **achevées** (samedi antérieur à
    aujourd'hui) sont utilisées. Confirmez-vous que la période en cours ne doit jamais
    servir d'historique, même pour préremplir une période future ?
-3. **Bénévoles désactivés** : ils sont masqués par défaut dans le planning et
-   accessibles via la case « Inclure les bénévoles désactivés ». Ce choix convient-il ?
-4. **Vue historique** : l'administration peut consulter les quatre périodes passées, la
+3. **Vue historique** : l'administration peut consulter les quatre périodes passées, la
    période courante et les périodes ouvertes. Faut-il remonter plus loin en V1 ?
-5. **Identité visuelle** : la palette vert Emmaüs / pierre et la mise en page sont à
+4. **Identité visuelle** : la palette vert Emmaüs / pierre et la mise en page sont à
    valider avec vous ; les écrans peuvent être ajustés sans impact fonctionnel.
-6. **Sécurité hors réseau local** : la V1 ne limite pas les tentatives de connexion et
+5. **Sécurité hors réseau local** : la V1 ne limite pas les tentatives de connexion et
    n'ajoute pas de second facteur. Confirmez-vous que ces sujets restent hors périmètre
    jusqu'au déploiement distant ?
-7. **Migrations** : faut-il introduire Alembic dès maintenant ou le réserver à la phase de
+6. **Migrations** : faut-il introduire Alembic dès maintenant ou le réserver à la phase de
    déploiement ?
-8. **Tests frontend** : faut-il ajouter Vitest/Playwright en V1, sachant que la feuille de
+7. **Tests frontend** : faut-il ajouter Vitest/Playwright en V1, sachant que la feuille de
    route initiale ne demandait que lint et build ?
-9. **Coupure matin/après-midi** : elle est fixée à **13:00**. Faut-il la placer à 12:00,
+8. **Coupure matin/après-midi** : elle est fixée à **13:00**. Faut-il la placer à 12:00,
    ou préférer un autre découpage ?
 
 ### Informations d'accès locales

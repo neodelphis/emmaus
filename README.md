@@ -7,9 +7,9 @@ horaires d'ouverture et le planning hebdomadaire des réponses.
 
 Le planning affiche une colonne par jour avec deux listes, **Matin** et **Après-midi**,
 où chaque bénévole apparaît avec ses horaires. Les disponibilités « toute la journée »
-figurent dans un bandeau vert en haut de chaque jour et sont reprises dans les deux
-listes. Seuls les bénévoles ayant répondu avec une disponibilité apparaissent dans cette
-vue : les bénévoles sans réponse n'y sont plus signalés.
+apparaissent sur fond vert dans les deux listes. Seuls les bénévoles ayant répondu avec
+une disponibilité apparaissent dans cette vue : les bénévoles sans réponse n'y sont plus
+signalés.
 
 La feuille de route fonctionnelle est dans
 [`roadmaps/feuille-de-route-initiale.md`](roadmaps/feuille-de-route-initiale.md) et son
