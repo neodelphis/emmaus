@@ -3,7 +3,6 @@ import {
   AlertCircle,
   CalendarDays,
   CheckCircle2,
-  Info,
   Link2Off,
   Lock,
   RefreshCw,
@@ -390,15 +389,6 @@ export function VolunteerPage() {
             })}
           </div>
 
-          <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-sky-50 px-3.5 py-3 text-xs leading-relaxed text-sky-900">
-            <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-600" aria-hidden />
-            <p>
-              Une journée laissée sur <strong>« Indisponible »</strong> sera enregistrée
-              comme telle. Une réponse reste modifiable jusqu'à 23 h 59 la veille du jour
-              concerné.
-            </p>
-          </div>
-
           {period.submitted_at && (
             <p className="mt-3 text-xs text-stone-400">
               Dernière modification : {formatDateTime(period.submitted_at)}
@@ -414,67 +404,50 @@ export function VolunteerPage() {
             </div>
           )}
 
-          <div className="mt-5 space-y-3">
-            {period.days.map((day) => {
-              const draft = drafts[day.date]
-              if (!day.editable || !draft) {
-                return (
-                  <DayEditor
-                    key={day.date}
-                    day={day}
-                    draft={
-                      draft ?? {
-                        kind: 'unavailable',
-                        start: '08:00',
-                        end: '18:00',
-                        site: access.default_site,
-                      }
-                    }
-                    opening={openingFor(
-                      draft?.site ?? access.default_site,
-                      day.weekday,
-                    )}
-                    sites={access.sites}
-                    submitted={period.submitted}
-                    suggested={false}
-                    onChange={() => undefined}
-                  />
-                )
-              }
-              return (
-                <DayEditor
-                  key={day.date}
-                  day={day}
-                  draft={draft}
-                  opening={openingFor(draft.site, day.weekday)}
-                  sites={access.sites}
-                  submitted={period.submitted}
-                  suggested={suggested.has(day.date)}
-                  onChange={(value) => updateDay(day.date, value)}
-                />
-              )
-            })}
-          </div>
-
-          <div className="sticky bottom-0 z-10 -mx-4 mt-5 border-t border-stone-200 bg-white/95 px-4 py-3 shadow-[0_-8px_24px_-20px_rgba(0,0,0,0.35)] backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none">
-            <div className="flex items-center justify-between gap-3 sm:pt-2">
-              <p className="text-xs text-stone-500">
-                {dirty
-                  ? 'Modifications non enregistrées'
-                  : period.submitted
-                    ? 'Votre réponse est à jour.'
-                    : 'Aucune réponse enregistrée pour cette période.'}
-              </p>
-              <Button
-                onClick={() => void handleSave()}
-                loading={saving}
-                disabled={editableDays.length === 0}
-                leftIcon={<Save className="h-4 w-4" />}
-              >
-                Enregistrer
-              </Button>
+          {editableDays.length === 0 ? (
+            <div className="mt-5 rounded-xl bg-stone-50 px-4 py-6 text-center text-sm text-stone-500">
+              Cette période ne contient plus de jours modifiables.
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="mt-5 space-y-3">
+                {editableDays.map((day) => {
+                  const draft = drafts[day.date]
+                  if (!draft) return null
+                  return (
+                    <DayEditor
+                      key={day.date}
+                      day={day}
+                      draft={draft}
+                      opening={openingFor(draft.site, day.weekday)}
+                      sites={access.sites}
+                      suggested={suggested.has(day.date)}
+                      onChange={(value) => updateDay(day.date, value)}
+                    />
+                  )
+                })}
+              </div>
+
+              <div className="sticky bottom-0 z-10 -mx-4 mt-5 border-t border-stone-200 bg-white/95 px-4 py-3 shadow-[0_-8px_24px_-20px_rgba(0,0,0,0.35)] backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none">
+                <div className="flex items-center justify-between gap-3 sm:pt-2">
+                  <p className="text-xs text-stone-500">
+                    {dirty
+                      ? 'Modifications non enregistrées'
+                      : period.submitted
+                        ? 'Votre réponse est à jour.'
+                        : 'Aucune réponse enregistrée pour cette période.'}
+                  </p>
+                  <Button
+                    onClick={() => void handleSave()}
+                    loading={saving}
+                    leftIcon={<Save className="h-4 w-4" />}
+                  >
+                    Enregistrer
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
         </Card>
 
         <div className="mt-6 flex flex-col items-center gap-2 text-center text-xs text-stone-400">
