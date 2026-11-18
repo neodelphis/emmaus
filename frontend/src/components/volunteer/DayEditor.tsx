@@ -1,7 +1,7 @@
 import { Sparkles, Sun, Sunrise, Sunset, XCircle } from 'lucide-react'
 import type { DayKind, DayView, OpeningHours, SiteCode, SiteWithHours } from '../../types'
 import { cn } from '../../lib/cn'
-import { formatDayDate, minutesOf, timeFromMinutes } from '../../lib/dates'
+import { formatDayDate, formatDayMonth, minutesOf, timeFromMinutes } from '../../lib/dates'
 
 export interface DraftDay {
   kind: DayKind
@@ -142,8 +142,8 @@ export function DayEditor({
           <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">
             {formatDayDate(day.date).split(' ')[0]}
           </p>
-          <h3 className="mt-0.5 text-base font-semibold first-letter:uppercase text-stone-900">
-            {formatDayDate(day.date)}
+          <h3 className="mt-0.5 text-base font-semibold text-stone-900">
+            {formatDayMonth(day.date)}
           </h3>
         </div>
 
