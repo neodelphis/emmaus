@@ -61,15 +61,17 @@ Les ports **80** et **443** doivent être joignables depuis Internet.
 
 ### 3.2 Accès SSH
 
-D’après la configuration du VPS, l’accès se fait avec l’utilisateur `debian`,
-sur le port `49094` :
+L’accès manuel utilise l’alias SSH local `staging`, configuré sur le Mac :
 
 ```sh
-ssh -p 49094 debian@51.89.151.178
+ssh staging
 ```
 
-Si l’utilisateur ou le port diffèrent, adapte les secrets `STAGING_USER` et
-`STAGING_PORT` ci-dessous.
+L’alias contient l’hôte, le port `49094`, l’utilisateur et la clé personnelle.
+Toutes les commandes manuelles de ce document utilisent cet alias.
+
+GitHub Actions ne lit pas `~/.ssh/config` : les secrets `STAGING_HOST`,
+`STAGING_USER` et `STAGING_PORT` doivent contenir les valeurs réelles (voir § 5.3).
 
 ### 3.3 Traefik et Docker
 
@@ -92,7 +94,7 @@ L’utilisateur SSH doit pouvoir exécuter `docker` et `docker compose`.
 ### 4.1 Créer le répertoire de déploiement
 
 ```sh
-ssh -p 49094 debian@51.89.151.178 'mkdir -p ~/emmaus'
+ssh staging 'mkdir -p ~/emmaus'
 ```
 
 Le chemin utilisé par défaut est `/home/debian/emmaus`. La CI y copie
@@ -104,10 +106,9 @@ volumes.
 Depuis la racine du dépôt local :
 
 ```sh
-scp -P 49094 .env.staging.example \
-  debian@51.89.151.178:/home/debian/emmaus/.env.staging
+scp .env.staging.example staging:~/emmaus/.env.staging
 
-ssh -t -p 49094 debian@51.89.151.178 \
+ssh -t staging \
   'nano ~/emmaus/.env.staging && chmod 600 ~/emmaus/.env.staging'
 ```
 
@@ -143,17 +144,20 @@ ssh-keygen -t ed25519 -N "" \
   -C "github-actions-emmaus-staging" \
   -f ~/.ssh/emmaus_staging_deploy
 
-ssh-copy-id -i ~/.ssh/emmaus_staging_deploy.pub \
-  -p 49094 debian@51.89.151.178
+cat ~/.ssh/emmaus_staging_deploy.pub | ssh staging \
+  'mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys'
 ```
 
-Tester :
+Tester la clé dédiée à travers l’alias :
 
 ```sh
-ssh -i ~/.ssh/emmaus_staging_deploy -p 49094 debian@51.89.151.178 true
+ssh -i ~/.ssh/emmaus_staging_deploy staging true
 ```
 
 ### 5.3 Ajouter les secrets à l’environnement
+
+GitHub Actions ne lit pas l’alias `staging` : ces secrets contiennent les
+valeurs réelles de la configuration SSH.
 
 ```sh
 gh secret set STAGING_HOST --env staging --body "51.89.151.178"
@@ -206,7 +210,7 @@ gh workflow run deploy-staging.yml --ref main
 MailHog n’est pas exposé publiquement. Ouvrir un tunnel SSH :
 
 ```sh
-ssh -N -L 8025:127.0.0.1:8025 -p 49094 debian@51.89.151.178
+ssh -N -L 8025:127.0.0.1:8025 staging
 ```
 
 Puis ouvrir <http://localhost:8025>. Les liens bénévoles envoyés depuis le
@@ -237,7 +241,7 @@ Le workflow saute alors les tests et le build, et déploie l’image demandée.
 ### Le serveur refuse le déploiement
 
 ```sh
-ssh -p 49094 debian@51.89.151.178
+ssh staging
 cd ~/emmaus
 docker compose --env-file .env.staging -f docker-compose.staging.yml config
 docker compose --env-file .env.staging -f docker-compose.staging.yml ps
