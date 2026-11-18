@@ -19,6 +19,11 @@ const shortDateFormatter = new Intl.DateTimeFormat(LOCALE, {
   month: 'short',
 })
 
+const dayMonthFormatter = new Intl.DateTimeFormat(LOCALE, {
+  day: 'numeric',
+  month: 'long',
+})
+
 const dateTimeFormatter = new Intl.DateTimeFormat(LOCALE, {
   day: 'numeric',
   month: 'long',
@@ -46,6 +51,10 @@ export function formatDayDate(iso: string): string {
 
 export function formatShortDate(iso: string): string {
   return shortDateFormatter.format(parseIsoDate(iso))
+}
+
+export function formatDayMonth(iso: string): string {
+  return dayMonthFormatter.format(parseIsoDate(iso))
 }
 
 export function formatPeriodRange(start: string, end: string): string {
