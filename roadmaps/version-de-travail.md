@@ -95,11 +95,11 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
     ajoutées aux bases existantes par des `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` et
     les données historiques sont affectées à Vairé.
 17. **Interface bénévole simplifiée.** L’espace personnel ne montre plus les jours
-    clôturés et le bandeau d’information global a été retiré. Le choix « Créneau » est
-    remplacé par deux options empilées, **Matin** et **Après-midi**, dont les horaires
-    apparaissent et restent ajustables après sélection. Les valeurs initiales sont
-    08:00–12:00 et 14:00–18:00, adaptées aux horaires du site ; les données restent un
-    créneau continu unique.
+    clôturés et le bandeau d’information global a été retiré. Les choix sont ordonnés :
+    **Toute la journée**, puis **Matin** et **Après-midi** empilés, puis **Indisponible**.
+    Les horaires des demi-journées apparaissent et restent ajustables après sélection.
+    Les valeurs initiales sont 08:00–12:00 et 14:00–18:00, adaptées aux horaires du site ;
+    les données restent un créneau continu unique.
 18. **Planning par demi-journées.** La vue administration présente une carte par jour,
     avec deux listes : **Matin** (avant 13:00) et **Après-midi** (dès 13:00). Chaque
     bénévole y figure avec ses horaires réels, sans positionnement horaire, afin de rester
