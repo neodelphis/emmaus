@@ -17,7 +17,7 @@ La V1 est locale : Docker Compose, PostgreSQL, FastAPI, React/Vite et MailHog. L
 - Les propositions réutilisent les quatre dernières périodes passées renseignées, jamais les déclarations futures. Les jours vides sont ignorés ; toute la journée est distincte des créneaux. Deux créneaux sont proches si leurs bornes de début et de fin sont chacune à 30 minutes ou moins. Le choix le plus fréquent est repris ; les égalités sont départagées par la réponse la plus récente. Sans historique pour un jour, ne rien préremplir.
 - Un lien est créé automatiquement pour chaque bénévole et reste stable lors d’un renvoi. Une révocation suivie d’une régénération invalide l’ancien lien.
 - La désactivation d’un bénévole conserve ses réponses. Une suppression définitive retire le bénévole, son lien et toutes ses déclarations.
-- Le repas de midi (12:00–13:00) concerne les bénévoles disponibles toute la journée. Ils y sont inscrits par défaut ; l’administration peut les retirer avec une confirmation et les réinscrire. Les bénévoles ayant seulement un créneau horaire ne sont pas inscrits automatiquement.
+- Le repas de midi (12:30–13:30) concerne les bénévoles disponibles toute la journée. Ils y sont inscrits par défaut ; l’administration peut les retirer avec une confirmation et les réinscrire. Les bénévoles ayant seulement un créneau horaire ne sont pas inscrits automatiquement.
 
 ## Sécurité et données
 

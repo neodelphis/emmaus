@@ -68,7 +68,7 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
 12. **Image de build frontend.** Le build utilise `node:24-bookworm-slim` et non Alpine :
     le binaire natif de Rollup employé par Vite échoue sur musl avec la version actuelle.
 13. **Repas de midi.** Les bénévoles disponibles **toute la journée** sont inscrits par
-    défaut au repas de 12:00–13:00. Une table `meal_exclusions` conserve uniquement les
+    défaut au repas de 12:30–13:30. Une table `meal_exclusions` conserve uniquement les
     retraits ; l'absence de ligne vaut inscription. L'administration peut retirer un
     bénévole avec une confirmation et le réinscrire. Les bénévoles ayant seulement un
     créneau horaire ne sont pas concernés par ce repas.
@@ -157,7 +157,7 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
    route initiale ne demandait que lint et build ?
 8. **Coupure matin/après-midi** : elle est fixée à **13:00**. Faut-il la placer à 12:00,
    ou préférer un autre découpage ?
-9. **Horaire du repas** : il est fixé à **12:00–13:00**. Faut-il le rendre configurable ou
+9. **Horaire du repas** : il est fixé à **12:30–13:30**. Faut-il le rendre configurable ou
    choisir un autre créneau ?
 
 ### Informations d'accès locales
