@@ -101,23 +101,32 @@ function entryTitle(item: SectionItem): string {
 
 function SectionCard({ item }: { item: SectionItem }) {
   const entry = item.entry
+  const active = entry.isActive
   return (
     <div
       title={entryTitle(item)}
       className={cn(
         'flex items-center gap-1 rounded-md border px-1.5 py-1 shadow-sm',
-        entry.isActive
-          ? 'border-sky-200 bg-sky-50'
-          : 'border-dashed border-stone-300 bg-stone-50 opacity-70',
+        !active && 'border-dashed border-stone-300 bg-stone-50 opacity-70',
+        active && item.isAllDay && 'border-brand-200 bg-brand-100/70',
+        active && !item.isAllDay && 'border-sky-200 bg-sky-50',
       )}
     >
       {item.isAllDay && (
-        <Sun className="h-3 w-3 shrink-0 text-brand-600" aria-hidden />
+        <Sun
+          className={cn(
+            'h-3 w-3 shrink-0',
+            active ? 'text-brand-600' : 'text-stone-400',
+          )}
+          aria-hidden
+        />
       )}
       <span
         className={cn(
           'min-w-0 flex-1 truncate text-[11px] font-semibold leading-tight',
-          entry.isActive ? 'text-sky-900' : 'text-stone-500',
+          active && item.isAllDay && 'text-brand-800',
+          active && !item.isAllDay && 'text-sky-900',
+          !active && 'text-stone-500',
         )}
       >
         {entry.name}
@@ -125,7 +134,9 @@ function SectionCard({ item }: { item: SectionItem }) {
       <span
         className={cn(
           'shrink-0 text-[10px] leading-tight tabular-nums',
-          entry.isActive ? 'text-sky-700' : 'text-stone-400',
+          active && item.isAllDay && 'text-brand-700',
+          active && !item.isAllDay && 'text-sky-700',
+          !active && 'text-stone-400',
         )}
       >
         {item.timeLabel}
@@ -138,22 +149,15 @@ function SectionHeading({
   label,
   hint,
   count,
-  tone,
 }: {
   label: string
   hint: string
   count: number
-  tone: 'brand' | 'neutral'
 }) {
   return (
     <div className="flex items-center justify-between gap-2">
       <p className="flex items-center gap-1.5">
-        <span
-          className={cn(
-            'text-[9px] font-semibold uppercase tracking-wide',
-            tone === 'brand' ? 'text-brand-700' : 'text-stone-500',
-          )}
-        >
+        <span className="text-[9px] font-semibold uppercase tracking-wide text-stone-500">
           {label}
         </span>
         <span className="rounded-full bg-stone-100 px-1.5 py-0.5 text-[9px] font-medium leading-none text-stone-500">
@@ -183,7 +187,7 @@ function HalfDaySection({
         !last && 'border-b border-stone-100',
       )}
     >
-      <SectionHeading label={label} hint={hint} count={items.length} tone="neutral" />
+      <SectionHeading label={label} hint={hint} count={items.length} />
       <div className="mt-1.5 flex flex-col gap-1">
         {items.length === 0 ? (
           <p className="text-[10px] text-stone-400">Aucun bénévole</p>
@@ -230,40 +234,6 @@ function DayCard({ day, sections }: { day: PlanningDay; sections: DaySections })
           )}
         </div>
       </header>
-
-      <section className="border-b border-brand-100 bg-brand-50/80 px-2.5 py-2">
-        <SectionHeading
-          label="Toute la journée"
-          hint="repris dans les listes"
-          count={day.allDay.length}
-          tone="brand"
-        />
-        <div className="mt-1.5 flex flex-col gap-1">
-          {day.allDay.length === 0 ? (
-            <p className="text-[10px] text-stone-400">—</p>
-          ) : (
-            day.allDay.map((entry) => (
-              <div
-                key={entry.id}
-                title={entryTitle({
-                  entry,
-                  isAllDay: true,
-                  timeLabel: 'Toute la journée',
-                  sortStart: 0,
-                })}
-                className={cn(
-                  'truncate rounded-md border px-1.5 py-1 text-[11px] font-semibold leading-tight',
-                  entry.isActive
-                    ? 'border-brand-300 bg-brand-100/80 text-brand-800'
-                    : 'border-dashed border-stone-300 bg-stone-50 text-stone-500',
-                )}
-              >
-                {entry.name}
-              </div>
-            ))
-          )}
-        </div>
-      </section>
 
       <HalfDaySection
         label="Matin"
