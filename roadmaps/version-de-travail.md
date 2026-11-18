@@ -65,13 +65,16 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
     devra mettre à jour ce document, le README et les configurations.
 12. **Image de build frontend.** Le build utilise `node:24-bookworm-slim` et non Alpine :
     le binaire natif de Rollup employé par Vite échoue sur musl avec la version actuelle.
-13. **Planning hebdomadaire.** La vue administration est un planning : une colonne par
-    jour, une échelle horaire, des blocs pour les créneaux et un bandeau « toute la
-    journée ». Les bénévoles sans réponse sont listés dans un encart distinct et ne sont
-    jamais comptés comme indisponibles ; le nombre d'indisponibles est rappelé par jour.
-    Sur mobile, un sélecteur de jour affiche une journée à la fois ; sur ordinateur, les
-    cinq colonnes sont visibles et un filtre permet d'isoler un jour. Les horaires
-    d'ouverture servent d'échelle et les plages hors ouverture sont grisées.
+13. **Planning par demi-journées.** La vue administration présente une carte par jour,
+    avec deux listes : **Matin** (avant 13:00) et **Après-midi** (dès 13:00). Chaque
+    bénévole y figure avec ses horaires réels, sans positionnement horaire, afin de rester
+    lisible avec une quinzaine de personnes par créneau. Un créneau qui chevauche 13:00
+    apparaît dans les deux listes. Les journées entières sont affichées dans un bandeau
+    vert en haut de chaque jour **et** reprises dans les deux listes. Les bénévoles sans
+    réponse sont listés dans un encart distinct et ne sont jamais comptés comme
+    indisponibles ; le nombre d'indisponibles est rappelé par jour. Sur mobile, un
+    sélecteur de jour affiche une journée à la fois ; sur ordinateur, les cinq cartes sont
+    visibles et un filtre permet d'isoler un jour.
 
 ## Validation effectuée
 
@@ -81,8 +84,9 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
 - `npm run build` : compilation TypeScript et build Vite réussis.
 - `python scripts/smoke_test.py` : API, PostgreSQL, MailHog et Nginx validés de bout en
   bout sur une pile reconstruite depuis un volume vierge.
-- Vérifications Chromium (bureau et mobile) : connexion, planning par colonnes, filtre
-  par jour, sélecteur mobile, création, modification et suppression d'un bénévole,
+- Vérifications Chromium (bureau et mobile) : connexion, planning par demi-journées,
+  filtre par jour, sélecteur mobile, listes denses (16 bénévoles), création,
+  modification et suppression d'un bénévole,
   enregistrement d'une disponibilité, modification des horaires, création d'un compte
   administrateur et réinitialisation de mot de passe.
 - Jeu de démonstration `app.seed_demo` vérifié sur les cinq profils bénévoles et le cas
@@ -112,8 +116,8 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
 - API et interface bénévole : lien personnel, périodes mardi–samedi, clôture à 23 h 59 la
   veille, jour vide / toute la journée / créneau de 30 minutes, propositions historiques.
 - Administration : bénévoles, liens (copie, envoi, révocation, régénération), planning
-  hebdomadaire par jour avec blocs de créneaux, non-répondants distincts, filtres par
-  jour, horaires, comptes administrateurs.
+  par jour avec listes matin/après-midi, journées entières reprises dans les deux listes,
+  non-répondants distincts, filtres par jour, horaires, comptes administrateurs.
 - Validation : 56 tests backend, lint, build, test de fumée Docker et vérifications
   navigateur mobile/bureau.
 
@@ -138,6 +142,8 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
    déploiement ?
 8. **Tests frontend** : faut-il ajouter Vitest/Playwright en V1, sachant que la feuille de
    route initiale ne demandait que lint et build ?
+9. **Coupure matin/après-midi** : elle est fixée à **13:00**. Faut-il la placer à 12:00,
+   ou préférer un autre découpage ?
 
 ### Informations d'accès locales
 

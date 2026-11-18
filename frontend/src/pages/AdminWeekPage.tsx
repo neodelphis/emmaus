@@ -383,7 +383,7 @@ export function AdminWeekPage() {
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-stone-500">
                   <span className="inline-flex items-center gap-1.5">
                     <span className="h-2.5 w-2.5 rounded-sm bg-brand-200" />
-                    Toute la journée
+                    Toute la journée (vert, repris dans les listes)
                   </span>
                   <span className="inline-flex items-center gap-1.5">
                     <span className="h-2.5 w-2.5 rounded-sm bg-sky-200" />
@@ -405,10 +405,12 @@ export function AdminWeekPage() {
                   )}
                 </div>
                 <p className="text-[11px] leading-relaxed text-stone-400">
-                  Chaque bloc représente un bénévole disponible. Les bénévoles
-                  indisponibles ne sont pas affichés : leur nombre est indiqué dans
-                  l'en-tête de chaque jour. Les bénévoles sans réponse sont signalés
-                  séparément et ne sont jamais comptés comme indisponibles.
+                  Les bénévoles sont listés par demi-journée. Un créneau qui chevauche
+                  13:00 apparaît dans les deux listes avec ses horaires réels. Les
+                  journées entières sont affichées en vert en haut et reprises dans les
+                  deux listes. Les bénévoles indisponibles ne sont pas listés : leur
+                  nombre est indiqué dans l'en-tête de chaque jour. Les bénévoles sans
+                  réponse sont signalés séparément.
                 </p>
               </div>
             </>
