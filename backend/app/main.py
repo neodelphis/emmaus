@@ -21,6 +21,7 @@ from app.routers import (
     public_volunteer,
 )
 from app.services.bootstrap import (
+    backfill_admin_roles,
     backfill_sites,
     ensure_first_admin,
     ensure_site_opening_hours,
@@ -74,6 +75,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             )
             connection.execute(
                 text(
+                    "ALTER TABLE admin_users "
+                    "ADD COLUMN IF NOT EXISTS role VARCHAR(16) "
+                    "NOT NULL DEFAULT 'admin'"
+                )
+            )
+            connection.execute(
+                text(
                     "ALTER TABLE volunteers "
                     "ADD COLUMN IF NOT EXISTS default_site VARCHAR(16)"
                 )
@@ -87,6 +95,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         with app.state.session_factory() as session:
             ensure_site_opening_hours(session)
             backfill_sites(session)
+            backfill_admin_roles(session, app_settings)
             ensure_first_admin(session, app_settings)
         logger.info("API Emmaüs prête.")
         try:

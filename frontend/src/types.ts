@@ -48,11 +48,14 @@ export interface VolunteerAccess {
   periods: PeriodView[]
 }
 
+export type AdminRole = 'admin' | 'super_admin'
+
 export interface AdminUser {
   id: string
   email: string
   first_name: string | null
   last_name: string | null
+  role: AdminRole
   gender: 'homme' | 'femme' | null
   last_site: SiteCode | null
 }

@@ -109,7 +109,15 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
     « Connecté » / « Connectée » dans la barre latérale. Le formulaire de création d’un
     administrateur permet aussi de les renseigner. Les colonnes sont ajoutées aux bases
     existantes par un `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`.
-19. **Planning par demi-journées.** La vue administration présente une carte par jour,
+19. **Rôles des administrateurs.** Le champ `role` (`admin` ou `super_admin`) distingue
+    l’**Administrateur** (planning, bénévoles, profil) de l’**Administrateur principal**
+    (ajout de comptes et modification des horaires). Le premier compte et le compte
+    `ADMIN_EMAIL` sont promus administrateur principal ; les autres comptes sont
+    administrateurs par défaut. Les routes de création/liste des comptes et de
+    modification des horaires sont réservées au rôle principal, et les entrées Horaires
+    et gestion des comptes sont masquées aux administrateurs standards. La colonne est
+    ajoutée aux bases existantes par un `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`.
+20. **Planning par demi-journées.** La vue administration présente une carte par jour,
     avec deux listes : **Matin** (avant 13:00) et **Après-midi** (dès 13:00). Chaque
     bénévole y figure avec ses horaires réels, sans positionnement horaire, afin de rester
     lisible avec une quinzaine de personnes par créneau. Un créneau qui chevauche 13:00
@@ -123,7 +131,7 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
 
 ## Validation effectuée
 
-- `pytest` : 68 tests backend, exécutés dans le conteneur API avec PostgreSQL.
+- `pytest` : 71 tests backend, exécutés dans le conteneur API avec PostgreSQL.
 - `ruff check app tests` : aucune erreur.
 - `npm run lint` : aucune erreur ni avertissement.
 - `npm run build` : compilation TypeScript et build Vite réussis.
@@ -148,6 +156,8 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
   « Connectée » vérifié dans Chromium.
 - Identité administrateur : tests API sur la modification du prénom et du nom, et
   vérification Chromium de l’affichage sous « Connecté » dans la barre latérale.
+- Rôles administrateur : tests API des accès autorisés/interdits et vérification
+  Chromium des interfaces Administrateur et Administrateur principal.
 - Interface bénévole : vérification Chromium des jours clôturés masqués, du bandeau
   d'information retiré, des options Matin/Après-midi empilées et des horaires ajustables.
 - Genre des bénévoles : tests API sur la création, la modification, l'absence de genre

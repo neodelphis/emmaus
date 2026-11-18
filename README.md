@@ -45,8 +45,8 @@ Le fichier `.env.example` commente chaque variable. Renseignez dans `.env` :
 - `POSTGRES_PASSWORD` : un mot de passe solide ;
 - `SECRET_KEY` : 64 caractères aléatoires (`openssl rand -hex 32`) ;
 - `ADMIN_EMAIL` et `ADMIN_PASSWORD` : identifiants du premier administrateur, créé au
-  premier démarrage si aucun compte n'existe encore. Le mot de passe doit contenir au
-  moins 12 caractères ;
+  premier démarrage si aucun compte n'existe encore. Ce compte est automatiquement
+  administrateur principal. Le mot de passe doit contenir au moins 12 caractères ;
 - `ADMIN_GENDER` : `homme` ou `femme`, utilisé pour le libellé « Connecté » ou
   « Connectée » du premier compte ;
 - éventuellement `FRONTEND_URL` (par défaut `http://localhost:8080`).
@@ -196,6 +196,9 @@ Il lit les identifiants dans `.env` et ne doit être utilisé qu'en local.
   ou « Connectée ».
 - Le prénom et le nom des administrateurs sont facultatifs, modifiables dans Compte et
   affichés sous le libellé de connexion dans la barre latérale.
+- Deux rôles : **Administrateur** (planning, bénévoles, profil) et **Administrateur
+  principal** (ajout de comptes et modification des horaires). Le premier compte est
+  automatiquement administrateur principal ; les suivants reçoivent le rôle choisi.
 - Le genre des bénévoles est renseigné dans le formulaire d'administration et stocké sur
   la fiche. Les fiches existantes sans genre portent le badge « Genre à renseigner ».
 - Le site d'affectation par défaut est stocké sur la fiche bénévole. Le site choisi pour

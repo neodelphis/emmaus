@@ -16,8 +16,9 @@ import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { Input, Select } from '../components/ui/Input'
 import { PageHeader } from '../components/ui/PageHeader'
+import { cn } from '../lib/cn'
 import { useToast } from '../toast'
-import type { AdminUser } from '../types'
+import type { AdminRole, AdminUser } from '../types'
 
 export function AdminAccountPage() {
   const { user, signIn, signOut } = useAuth()
@@ -31,6 +32,7 @@ export function AdminAccountPage() {
   const [newFirstName, setNewFirstName] = useState('')
   const [newLastName, setNewLastName] = useState('')
   const [newGender, setNewGender] = useState<'homme' | 'femme' | ''>('')
+  const [newRole, setNewRole] = useState<AdminRole>('admin')
   const [formError, setFormError] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [firstName, setFirstName] = useState(user?.first_name ?? '')
@@ -39,8 +41,14 @@ export function AdminAccountPage() {
     user?.gender ?? '',
   )
   const [savingProfile, setSavingProfile] = useState(false)
+  const isSuperAdmin = user?.role === 'super_admin'
 
   const load = useCallback(async () => {
+    if (!isSuperAdmin) {
+      setLoading(false)
+      setAdmins([])
+      return
+    }
     setLoading(true)
     setListError(null)
     try {
@@ -54,7 +62,7 @@ export function AdminAccountPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [isSuperAdmin])
 
   useEffect(() => {
     void load()
@@ -108,6 +116,7 @@ export function AdminAccountPage() {
         email.trim(),
         password,
         newGender,
+        newRole,
         newFirstName.trim(),
         newLastName.trim(),
       )
@@ -118,6 +127,7 @@ export function AdminAccountPage() {
       setNewFirstName('')
       setNewLastName('')
       setNewGender('')
+      setNewRole('admin')
       await load()
     } catch (caught) {
       setFormError(
@@ -131,11 +141,15 @@ export function AdminAccountPage() {
   return (
     <div className="space-y-5">
       <PageHeader
-        title="Compte et administrateurs"
-        description="Gérez votre session et les comptes ayant accès à l'administration."
+        title={isSuperAdmin ? 'Compte et administrateurs' : 'Mon compte'}
+        description={
+          isSuperAdmin
+            ? "Gérez votre session et les comptes ayant accès à l'administration."
+            : 'Gérez votre session et votre profil.'
+        }
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className={cn('grid gap-4', isSuperAdmin && 'lg:grid-cols-2')}>
         <Card className="p-5">
           <div className="flex items-start gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
@@ -160,9 +174,9 @@ export function AdminAccountPage() {
             <div className="flex items-center justify-between gap-3 rounded-xl bg-stone-50 px-3.5 py-3">
               <dt className="text-stone-500">Rôle</dt>
               <dd>
-                <Badge tone="green">
+                <Badge tone={isSuperAdmin ? 'green' : 'stone'}>
                   <ShieldCheck className="h-3 w-3" aria-hidden />
-                  Administrateur
+                  {isSuperAdmin ? 'Administrateur principal' : 'Administrateur'}
                 </Badge>
               </dd>
             </div>
@@ -235,18 +249,19 @@ export function AdminAccountPage() {
           </div>
         </Card>
 
-        <Card className="p-5">
-          <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-stone-100 text-stone-600">
-              <UserPlus className="h-5 w-5" aria-hidden />
-            </span>
-            <div>
-              <h2 className="font-semibold text-stone-900">Ajouter un administrateur</h2>
-              <p className="mt-0.5 text-sm text-stone-500">
-                Tous les comptes ont les mêmes droits en V1.
-              </p>
+        {isSuperAdmin && (
+          <Card className="p-5">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-stone-100 text-stone-600">
+                <UserPlus className="h-5 w-5" aria-hidden />
+              </span>
+              <div>
+                <h2 className="font-semibold text-stone-900">Ajouter un administrateur</h2>
+                <p className="mt-0.5 text-sm text-stone-500">
+                  Choisissez le rôle et les accès du nouveau compte.
+                </p>
+              </div>
             </div>
-          </div>
 
           <form className="mt-4 space-y-3" onSubmit={create}>
             {formError && (
@@ -290,6 +305,15 @@ export function AdminAccountPage() {
               <option value="homme">Homme</option>
               <option value="femme">Femme</option>
             </Select>
+            <Select
+              label="Rôle"
+              required
+              value={newRole}
+              onChange={(event) => setNewRole(event.target.value as AdminRole)}
+            >
+              <option value="admin">Administrateur</option>
+              <option value="super_admin">Administrateur principal</option>
+            </Select>
             <div className="grid gap-3 sm:grid-cols-2">
               <Input
                 label="Mot de passe"
@@ -315,10 +339,12 @@ export function AdminAccountPage() {
               Créer le compte
             </Button>
           </form>
-        </Card>
+          </Card>
+        )}
       </div>
 
-      <Card className="overflow-hidden">
+      {isSuperAdmin && (
+        <Card className="overflow-hidden">
         <div className="flex items-center justify-between gap-3 border-b border-stone-100 px-5 py-4">
           <div>
             <h2 className="font-semibold text-stone-900">Comptes administrateurs</h2>
@@ -354,7 +380,11 @@ export function AdminAccountPage() {
                     {admin.email}
                   </p>
                   <p className="text-xs text-stone-400">
-                    {admin.id === user?.id ? 'Vous' : 'Administrateur'}
+                    {admin.id === user?.id
+                      ? 'Vous'
+                      : admin.role === 'super_admin'
+                        ? 'Administrateur principal'
+                        : 'Administrateur'}
                   </p>
                 </div>
                 {admin.id === user?.id && <Badge tone="green">Compte actuel</Badge>}
@@ -362,7 +392,8 @@ export function AdminAccountPage() {
             ))}
           </ul>
         )}
-      </Card>
+        </Card>
+      )}
 
       <p className="text-xs text-stone-400">
         Une réinitialisation de mot de passe déconnecte immédiatement les sessions ouvertes

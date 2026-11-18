@@ -1,4 +1,5 @@
 import type {
+  AdminRole,
   AdminUser,
   DaySavePayload,
   OpeningHours,
@@ -117,6 +118,7 @@ export const api = {
     email: string,
     password: string,
     gender: 'homme' | 'femme',
+    role: AdminRole,
     firstName?: string,
     lastName?: string,
   ) {
@@ -126,6 +128,7 @@ export const api = {
         email,
         password,
         gender,
+        role,
         first_name: firstName || undefined,
         last_name: lastName || undefined,
       }),

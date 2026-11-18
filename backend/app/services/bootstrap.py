@@ -78,6 +78,18 @@ def backfill_sites(session: Session) -> None:
     session.commit()
 
 
+def backfill_admin_roles(session: Session, settings: Settings) -> None:
+    """Garantit que le compte administrateur initial est administrateur principal."""
+    if settings.admin_email is None:
+        return
+    admin = session.scalar(
+        select(AdminUser).where(AdminUser.email == str(settings.admin_email).lower())
+    )
+    if admin is not None and admin.role != "super_admin":
+        admin.role = "super_admin"
+        session.commit()
+
+
 def ensure_first_admin(session: Session, settings: Settings) -> None:
     """Crée le premier administrateur uniquement si aucun compte n'existe."""
     admin_count = session.scalar(select(func.count()).select_from(AdminUser)) or 0
@@ -109,6 +121,7 @@ def ensure_first_admin(session: Session, settings: Settings) -> None:
         AdminUser(
             email=str(settings.admin_email).lower(),
             password_hash=hash_password(settings.admin_password.get_secret_value()),
+            role="super_admin",
             gender=settings.admin_gender,
             last_site=DEFAULT_SITE,
         )
