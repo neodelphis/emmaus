@@ -23,6 +23,7 @@ from app.routers import (
 from app.services.bootstrap import (
     backfill_admin_roles,
     backfill_sites,
+    backfill_volunteer_names,
     ensure_first_admin,
     ensure_site_opening_hours,
 )
@@ -88,6 +89,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             )
             connection.execute(
                 text(
+                    "ALTER TABLE volunteers "
+                    "ADD COLUMN IF NOT EXISTS first_name VARCHAR(80)"
+                )
+            )
+            connection.execute(
+                text(
+                    "ALTER TABLE volunteers "
+                    "ADD COLUMN IF NOT EXISTS last_name VARCHAR(80)"
+                )
+            )
+            connection.execute(
+                text(
                     "ALTER TABLE day_availabilities "
                     "ADD COLUMN IF NOT EXISTS site VARCHAR(16)"
                 )
@@ -95,6 +108,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         with app.state.session_factory() as session:
             ensure_site_opening_hours(session)
             backfill_sites(session)
+            backfill_volunteer_names(session)
             backfill_admin_roles(session, app_settings)
             ensure_first_admin(session, app_settings)
         logger.info("API Emmaüs prête.")

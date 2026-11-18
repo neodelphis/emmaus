@@ -136,6 +136,8 @@ class PeriodSaveIn(BaseModel):
 
 class VolunteerCreateIn(BaseModel):
     name: str = Field(min_length=1, max_length=120)
+    first_name: str | None = Field(default=None, max_length=80)
+    last_name: str | None = Field(default=None, max_length=80)
     email: EmailStr | None = None
     gender: Literal["homme", "femme"] | None = None
     default_site: SiteCode | None = None
@@ -151,6 +153,8 @@ class VolunteerCreateIn(BaseModel):
 
 class VolunteerUpdateIn(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=120)
+    first_name: str | None = Field(default=None, max_length=80)
+    last_name: str | None = Field(default=None, max_length=80)
     email: EmailStr | None = None
     gender: Literal["homme", "femme"] | None = None
     default_site: SiteCode | None = None
@@ -170,6 +174,8 @@ class VolunteerUpdateIn(BaseModel):
 class VolunteerOut(BaseModel):
     id: UUID
     name: str
+    first_name: str | None = None
+    last_name: str | None = None
     email: EmailStr | None
     gender: Literal["homme", "femme"] | None = None
     default_site: SiteCode | None = None

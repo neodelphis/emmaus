@@ -123,7 +123,12 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
     utilise une base PostgreSQL interne, le SMTP OVH pour les courriels et un seul
     routeur public HTTPS. L’environnement GitHub `staging` porte les secrets SSH ; le fichier
     `.env.staging` reste uniquement sur le serveur. La production reste hors périmètre.
-21. **Planning par demi-journées.** La vue administration présente une carte par jour,
+21. **Prénom et nom des bénévoles.** La fiche bénévole stocke `first_name` et
+    `last_name` en plus du `name` complet utilisé dans les plannings, liens et courriels.
+    Le formulaire d’administration demande deux champs distincts. Les données historiques
+    sont séparées au premier espace au démarrage ; le script de démonstration renseigne
+    aussi les deux champs.
+22. **Planning par demi-journées.** La vue administration présente une carte par jour,
     avec deux listes : **Matin** (avant 13:00) et **Après-midi** (dès 13:00). Chaque
     bénévole y figure avec ses horaires réels, sans positionnement horaire, afin de rester
     lisible avec une quinzaine de personnes par créneau. Un créneau qui chevauche 13:00
@@ -137,7 +142,7 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
 
 ## Validation effectuée
 
-- `pytest` : 72 tests backend, exécutés dans le conteneur API avec PostgreSQL.
+- `pytest` : 75 tests backend, exécutés dans le conteneur API avec PostgreSQL.
 - `ruff check app tests` : aucune erreur.
 - `npm run lint` : aucune erreur ni avertissement.
 - `npm run build` : compilation TypeScript et build Vite réussis.
@@ -166,6 +171,8 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
   vérification Chromium de l’affichage sous « Connecté » dans la barre latérale.
 - Rôles administrateur : tests API des accès autorisés/interdits et vérification
   Chromium des interfaces Administrateur et Administrateur principal.
+- Prénom/nom des bénévoles : tests API de création, mise à jour et validation, puis
+  vérification Chromium des deux champs dans la fiche.
 - Déploiement staging : `docker compose --env-file .env.staging.example -f
   docker-compose.staging.yml config` et `actionlint` validés localement ; premier
   déploiement à effectuer après configuration des secrets et du serveur.

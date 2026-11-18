@@ -141,6 +141,8 @@ export const api = {
   },
   createVolunteer(payload: {
     name: string
+    first_name?: string
+    last_name?: string
     email?: string | null
     gender?: 'homme' | 'femme'
     default_site?: SiteCode

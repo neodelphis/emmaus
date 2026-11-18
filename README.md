@@ -215,6 +215,8 @@ Il lit les identifiants dans `.env` et ne doit être utilisé qu'en local.
   automatiquement administrateur principal ; les suivants reçoivent le rôle choisi.
 - Le genre des bénévoles est renseigné dans le formulaire d'administration et stocké sur
   la fiche. Les fiches existantes sans genre portent le badge « Genre à renseigner ».
+- Le prénom et le nom sont saisis séparément dans la fiche bénévole ; le nom complet est
+  utilisé dans les plannings, les liens et les courriels.
 - Le site d'affectation par défaut est stocké sur la fiche bénévole. Le site choisi pour
   chaque disponibilité est conservé séparément ; le planning administrateur et les repas
   sont filtrés par site.

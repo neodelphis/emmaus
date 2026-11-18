@@ -44,6 +44,11 @@ interface ConfirmState {
   action: () => Promise<void>
 }
 
+function splitFullName(name: string): { first: string; last: string } {
+  const [first, ...rest] = name.trim().split(/\s+/)
+  return { first: first ?? '', last: rest.join(' ') }
+}
+
 function initials(name: string): string {
   return name
     .split(' ')
@@ -218,13 +223,20 @@ function VolunteerFormModal({
   sites: Site[]
   onClose: () => void
   onSubmit: (
-    name: string,
+    firstName: string,
+    lastName: string,
     email: string,
     gender: 'homme' | 'femme',
     defaultSite: SiteCode,
   ) => Promise<void>
 }) {
-  const [name, setName] = useState(initial?.name ?? '')
+  const initialNames = splitFullName(initial?.name ?? '')
+  const [firstName, setFirstName] = useState(
+    initial?.first_name ?? initialNames.first,
+  )
+  const [lastName, setLastName] = useState(
+    initial?.last_name ?? initialNames.last,
+  )
   const [email, setEmail] = useState(initial?.email ?? '')
   const [gender, setGender] = useState<'homme' | 'femme' | ''>(
     initial?.gender ?? '',
@@ -243,8 +255,8 @@ function VolunteerFormModal({
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     setError(null)
-    if (!name.trim()) {
-      setError('Le nom est obligatoire.')
+    if (!firstName.trim() || !lastName.trim()) {
+      setError('Le prénom et le nom sont obligatoires.')
       return
     }
     if (!gender) {
@@ -257,7 +269,13 @@ function VolunteerFormModal({
     }
     setLoading(true)
     try {
-      await onSubmit(name.trim(), email.trim(), gender, defaultSite)
+      await onSubmit(
+        firstName.trim(),
+        lastName.trim(),
+        email.trim(),
+        gender,
+        defaultSite,
+      )
     } catch (caught) {
       setError(
         caught instanceof ApiError ? caught.message : 'L’enregistrement a échoué.',
@@ -294,15 +312,25 @@ function VolunteerFormModal({
             {error}
           </div>
         )}
-        <Input
-          label="Nom et prénom"
-          required
-          maxLength={120}
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="Marie Dupont"
-          autoFocus
-        />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input
+            label="Prénom"
+            required
+            maxLength={80}
+            value={firstName}
+            onChange={(event) => setFirstName(event.target.value)}
+            placeholder="Marie"
+            autoFocus
+          />
+          <Input
+            label="Nom"
+            required
+            maxLength={80}
+            value={lastName}
+            onChange={(event) => setLastName(event.target.value)}
+            placeholder="Dupont"
+          />
+        </div>
         <Select
           label="Genre"
           required
@@ -548,14 +576,18 @@ export function AdminVolunteersPage() {
   }
 
   const handleFormSubmit = async (
-    name: string,
+    firstName: string,
+    lastName: string,
     email: string,
     gender: 'homme' | 'femme',
     defaultSite: SiteCode,
   ) => {
+    const fullName = `${firstName} ${lastName}`
     if (form?.mode === 'edit') {
       await api.updateVolunteer(form.volunteer.id, {
-        name,
+        name: fullName,
+        first_name: firstName,
+        last_name: lastName,
         email: email || null,
         gender,
         default_site: defaultSite,
@@ -566,7 +598,9 @@ export function AdminVolunteersPage() {
       return
     }
     const created = await api.createVolunteer({
-      name,
+      name: fullName,
+      first_name: firstName,
+      last_name: lastName,
       email: email || null,
       gender,
       default_site: defaultSite,
