@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Sun } from 'lucide-react'
+import { Plus, Sun, UtensilsCrossed, X } from 'lucide-react'
 import { cn } from '../../lib/cn'
 import { formatShortDate, minutesOf, weekdayLabel } from '../../lib/dates'
 import type { OpeningHours } from '../../types'
@@ -14,6 +14,7 @@ export interface PlanningEntry {
   isActive: boolean
   start: string | null
   end: string | null
+  mealExcluded: boolean
 }
 
 export interface PlanningDay {
@@ -37,6 +38,8 @@ interface DaySections {
   morning: SectionItem[]
   afternoon: SectionItem[]
 }
+
+type MealAction = (entry: PlanningEntry, date: string) => void
 
 function buildSections(day: PlanningDay): DaySections {
   const open = day.opening?.open ?? '08:00'
@@ -199,7 +202,107 @@ function HalfDaySection({
   )
 }
 
-function DayCard({ day, sections }: { day: PlanningDay; sections: DaySections }) {
+
+function MealSection({
+  date,
+  entries,
+  onRemoveMeal,
+  onAddMeal,
+}: {
+  date: string
+  entries: PlanningEntry[]
+  onRemoveMeal?: MealAction
+  onAddMeal?: MealAction
+}) {
+  const included = entries.filter((entry) => !entry.mealExcluded)
+  const excluded = entries.filter((entry) => entry.mealExcluded)
+
+  return (
+    <section className="border-b border-amber-100 bg-amber-50/40 px-2.5 py-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="flex items-center gap-1.5">
+          <UtensilsCrossed className="h-3 w-3 text-amber-700" aria-hidden />
+          <span className="text-[9px] font-semibold uppercase tracking-wide text-amber-800">
+            Repas
+          </span>
+          <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-medium leading-none text-amber-800">
+            {included.length}
+          </span>
+        </p>
+        <span className="text-[9px] text-amber-700/70">12:00 – 13:00</span>
+      </div>
+
+      <div className="mt-1.5 flex flex-col gap-1">
+        {included.length === 0 ? (
+          <p className="text-[10px] text-stone-400">Aucun bénévole</p>
+        ) : (
+          included.map((entry) => (
+            <div
+              key={entry.id}
+              className="flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-1.5 py-1 shadow-sm"
+            >
+              <span className="min-w-0 flex-1 truncate text-[11px] font-semibold text-amber-900">
+                {entry.name}
+              </span>
+              {onRemoveMeal && (
+                <button
+                  type="button"
+                  onClick={() => onRemoveMeal(entry, date)}
+                  className="rounded p-0.5 text-amber-700/70 transition hover:bg-amber-100 hover:text-amber-900"
+                  aria-label={`Retirer ${entry.name} du repas`}
+                  title={`Retirer ${entry.name} du repas`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
+      {excluded.length > 0 && (
+        <div className="mt-1.5 border-t border-amber-100 pt-1.5">
+          <p className="text-[9px] font-medium uppercase tracking-wide text-stone-400">
+            Sans repas
+          </p>
+          <div className="mt-1 flex flex-wrap gap-1">
+            {excluded.map((entry) => (
+              <span
+                key={entry.id}
+                className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-white px-1.5 py-0.5 text-[9px] text-stone-500"
+              >
+                {entry.name}
+                {onAddMeal && (
+                  <button
+                    type="button"
+                    onClick={() => onAddMeal(entry, date)}
+                    className="rounded-full p-0.5 text-brand-700 transition hover:bg-brand-50"
+                    aria-label={`Ajouter ${entry.name} au repas`}
+                    title={`Ajouter ${entry.name} au repas`}
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
+                )}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
+
+function DayCard({
+  day,
+  sections,
+  onRemoveMeal,
+  onAddMeal,
+}: {
+  day: PlanningDay
+  sections: DaySections
+  onRemoveMeal?: MealAction
+  onAddMeal?: MealAction
+}) {
   const available = day.allDay.length + day.slots.length
   return (
     <article className="flex flex-col overflow-hidden rounded-xl border border-stone-200 bg-white">
@@ -240,6 +343,12 @@ function DayCard({ day, sections }: { day: PlanningDay; sections: DaySections })
         hint="avant 13:00"
         items={sections.morning}
       />
+      <MealSection
+        date={day.date}
+        entries={day.allDay}
+        onRemoveMeal={onRemoveMeal}
+        onAddMeal={onAddMeal}
+      />
       <HalfDaySection
         label="Après-midi"
         hint="dès 13:00"
@@ -253,9 +362,13 @@ function DayCard({ day, sections }: { day: PlanningDay; sections: DaySections })
 export function WeekPlanning({
   days,
   single = false,
+  onRemoveMeal,
+  onAddMeal,
 }: {
   days: PlanningDay[]
   single?: boolean
+  onRemoveMeal?: MealAction
+  onAddMeal?: MealAction
 }) {
   const sections = useMemo(() => days.map((day) => buildSections(day)), [days])
 
@@ -273,7 +386,13 @@ export function WeekPlanning({
           }}
         >
           {days.map((day, index) => (
-            <DayCard key={day.date} day={day} sections={sections[index]} />
+            <DayCard
+              key={day.date}
+              day={day}
+              sections={sections[index]}
+              onRemoveMeal={onRemoveMeal}
+              onAddMeal={onAddMeal}
+            />
           ))}
         </div>
       </div>

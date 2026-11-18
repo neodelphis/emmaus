@@ -10,6 +10,7 @@ import {
 import { api, ApiError } from '../api'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
+import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { EmptyState } from '../components/ui/EmptyState'
 import { PageHeader } from '../components/ui/PageHeader'
 import {
@@ -17,10 +18,12 @@ import {
   type PlanningDay,
   type PlanningEntry,
 } from '../components/admin/WeekPlanning'
+import { useToast } from '../toast'
 import { cn } from '../lib/cn'
 import {
   WEEKDAYS,
   addDays,
+  formatDayDate,
   formatPeriodRange,
   formatShortDate,
   parseIsoDate,
@@ -32,8 +35,17 @@ function availableCount(day: PlanningDay): number {
   return day.allDay.length + day.slots.length
 }
 
+interface MealRemovalTarget {
+  volunteerId: string
+  name: string
+  date: string
+}
+
 export function AdminWeekPage() {
+  const toast = useToast()
   const [requestedPeriod, setRequestedPeriod] = useState<string | null>(null)
+  const [mealRemoval, setMealRemoval] = useState<MealRemovalTarget | null>(null)
+  const [mealBusy, setMealBusy] = useState(false)
   const [data, setData] = useState<WeekView | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -94,6 +106,7 @@ export function AdminWeekPage() {
           isActive: volunteer.is_active,
           start: day.start,
           end: day.end,
+          mealExcluded: day.meal_excluded,
         }
         if (day.status === 'all_day') allDay.push(entry)
         else if (day.status === 'slot') slots.push(entry)
@@ -143,6 +156,43 @@ export function AdminWeekPage() {
   )
   const mobileDay =
     planningDays.find((day) => day.weekday === mobileWeekday) ?? planningDays[0]
+
+  const requestMealRemoval = (entry: PlanningEntry, date: string) => {
+    setMealRemoval({ volunteerId: entry.id, name: entry.name, date })
+  }
+
+  const confirmMealRemoval = async () => {
+    if (!mealRemoval) return
+    setMealBusy(true)
+    try {
+      await api.excludeVolunteerMeal(mealRemoval.volunteerId, mealRemoval.date)
+      toast.success(`${mealRemoval.name} a été retiré du repas.`)
+      setMealRemoval(null)
+      await load()
+    } catch (caught) {
+      toast.error(
+        caught instanceof ApiError
+          ? caught.message
+          : 'Le bénévole n’a pas pu être retiré du repas.',
+      )
+    } finally {
+      setMealBusy(false)
+    }
+  }
+
+  const addMeal = async (entry: PlanningEntry, date: string) => {
+    try {
+      await api.includeVolunteerMeal(entry.id, date)
+      toast.success(`${entry.name} a été ajouté au repas.`)
+      await load()
+    } catch (caught) {
+      toast.error(
+        caught instanceof ApiError
+          ? caught.message
+          : 'Le bénévole n’a pas pu être ajouté au repas.',
+      )
+    }
+  }
 
   return (
     <div className="space-y-5">
@@ -276,6 +326,8 @@ export function AdminWeekPage() {
                 <WeekPlanning
                   days={desktopDays}
                   single={desktopDays.length === 1}
+                  onRemoveMeal={requestMealRemoval}
+                  onAddMeal={(entry, date) => void addMeal(entry, date)}
                 />
               </div>
 
@@ -319,7 +371,14 @@ export function AdminWeekPage() {
                     )
                   })}
                 </div>
-                {mobileDay && <WeekPlanning days={[mobileDay]} single />}
+                {mobileDay && (
+                  <WeekPlanning
+                    days={[mobileDay]}
+                    single
+                    onRemoveMeal={requestMealRemoval}
+                    onAddMeal={(entry, date) => void addMeal(entry, date)}
+                  />
+                )}
               </div>
 
               <div className="space-y-2 pt-1">
@@ -333,6 +392,10 @@ export function AdminWeekPage() {
                     Créneau
                   </span>
                   <span className="inline-flex items-center gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-sm bg-amber-200" />
+                    Repas
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
                     <span className="h-2.5 w-2.5 rounded-sm bg-stone-200" />
                     Indisponible (non affiché)
                   </span>
@@ -340,15 +403,35 @@ export function AdminWeekPage() {
                 <p className="text-[11px] leading-relaxed text-stone-400">
                   Les bénévoles sont listés par demi-journée. Un créneau qui chevauche
                   13:00 apparaît dans les deux listes avec ses horaires réels. Les
-                  journées entières apparaissent sur fond vert dans les deux listes. Les
-                  bénévoles indisponibles ne sont pas listés : leur nombre est indiqué
-                  dans l'en-tête de chaque jour.
+                  journées entières apparaissent sur fond vert dans les deux listes et
+                  sont inscrites au repas de 12:00–13:00 par défaut ; le retrait du repas
+                  demande une confirmation. Les bénévoles indisponibles ne sont pas
+                  listés : leur nombre est indiqué dans l'en-tête de chaque jour.
                 </p>
               </div>
             </>
           )}
         </>
       )}
+      <ConfirmDialog
+        open={mealRemoval !== null}
+        title={
+          mealRemoval
+            ? `Retirer ${mealRemoval.name} du repas ?`
+            : 'Retirer du repas ?'
+        }
+        description={
+          mealRemoval
+            ? `${mealRemoval.name} ne déjeunera pas sur place le ${formatDayDate(
+                mealRemoval.date,
+              )}. Vous pourrez l’ajouter de nouveau depuis le planning.`
+            : ''
+        }
+        confirmLabel="Retirer du repas"
+        onConfirm={() => void confirmMealRemoval()}
+        onClose={() => setMealRemoval(null)}
+        loading={mealBusy}
+      />
     </div>
   )
 }

@@ -67,7 +67,12 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
     devra mettre à jour ce document, le README et les configurations.
 12. **Image de build frontend.** Le build utilise `node:24-bookworm-slim` et non Alpine :
     le binaire natif de Rollup employé par Vite échoue sur musl avec la version actuelle.
-13. **Planning par demi-journées.** La vue administration présente une carte par jour,
+13. **Repas de midi.** Les bénévoles disponibles **toute la journée** sont inscrits par
+    défaut au repas de 12:00–13:00. Une table `meal_exclusions` conserve uniquement les
+    retraits ; l'absence de ligne vaut inscription. L'administration peut retirer un
+    bénévole avec une confirmation et le réinscrire. Les bénévoles ayant seulement un
+    créneau horaire ne sont pas concernés par ce repas.
+14. **Planning par demi-journées.** La vue administration présente une carte par jour,
     avec deux listes : **Matin** (avant 13:00) et **Après-midi** (dès 13:00). Chaque
     bénévole y figure avec ses horaires réels, sans positionnement horaire, afin de rester
     lisible avec une quinzaine de personnes par créneau. Un créneau qui chevauche 13:00
@@ -94,6 +99,8 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
   administrateur et réinitialisation de mot de passe.
 - Jeu de démonstration `app.seed_demo` vérifié sur les cinq profils bénévoles et le cas
   du lien désactivé ; les liens sont affichés à l'exécution et ne sont pas versionnés.
+- Repas : tests API sur l'inscription par défaut, le retrait, la réinscription et le refus
+  pour un jour qui n'est pas « toute la journée ».
 - Vérification de l'administration dans un Firefox sans extension (Playwright) : aucun
   message dans la console, un seul script externe chargé, aucune requête `file://`.
   Les avertissements CSP `sandbox eval` observés dans un Firefox équipé d'extensions
@@ -124,7 +131,8 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
   veille, jour vide / toute la journée / créneau de 30 minutes, propositions historiques.
 - Administration : bénévoles, liens (copie, envoi, révocation, régénération), planning
   par jour avec listes matin/après-midi, journées entières reprises dans les deux listes,
-  filtres par jour, horaires, comptes administrateurs.
+  **repas de midi avec retrait confirmé et réinscription**, filtres par jour, horaires,
+  comptes administrateurs.
 - Validation : 56 tests backend, lint, build, test de fumée Docker et vérifications
   navigateur mobile/bureau.
 
@@ -149,6 +157,8 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
    route initiale ne demandait que lint et build ?
 8. **Coupure matin/après-midi** : elle est fixée à **13:00**. Faut-il la placer à 12:00,
    ou préférer un autre découpage ?
+9. **Horaire du repas** : il est fixé à **12:00–13:00**. Faut-il le rendre configurable ou
+   choisir un autre créneau ?
 
 ### Informations d'accès locales
 

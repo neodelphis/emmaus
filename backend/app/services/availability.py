@@ -21,7 +21,13 @@ from app.domain.periods import (
     visible_period_starts,
 )
 from app.domain.suggestions import HistoryDay, suggest_day
-from app.models import AvailabilityResponse, DayAvailability, OpeningHours, Volunteer
+from app.models import (
+    AvailabilityResponse,
+    DayAvailability,
+    MealExclusion,
+    OpeningHours,
+    Volunteer,
+)
 from app.schemas import (
     DayAnswerOut,
     DayViewOut,
@@ -281,6 +287,8 @@ def build_week_view(
     volunteer_ids = [volunteer.id for volunteer in volunteers]
 
     responses: dict[UUID, AvailabilityResponse] = {}
+    week_dates = period_days(period_start)
+    excluded_meals: set[tuple[UUID, date]] = set()
     if volunteer_ids:
         rows = session.scalars(
             select(AvailabilityResponse)
@@ -292,12 +300,22 @@ def build_week_view(
         ).all()
         responses = {row.volunteer_id: row for row in rows}
 
+        exclusions = session.scalars(
+            select(MealExclusion).where(
+                MealExclusion.volunteer_id.in_(volunteer_ids),
+                MealExclusion.day_date.in_(week_dates),
+            )
+        ).all()
+        excluded_meals = {
+            (exclusion.volunteer_id, exclusion.day_date) for exclusion in exclusions
+        }
+
     week_rows: list[WeekVolunteerOut] = []
     for volunteer in volunteers:
         response = responses.get(volunteer.id)
         day_rows = {row.day_date: row for row in response.days} if response else {}
         days: list[WeekDayOut] = []
-        for day_date in period_days(period_start):
+        for day_date in week_dates:
             row = day_rows.get(day_date)
             if response is None:
                 status = "unanswered"
@@ -316,6 +334,10 @@ def build_week_view(
                     status=status,  # type: ignore[arg-type]
                     start=start,
                     end=end,
+                    meal_excluded=(
+                        status == "all_day"
+                        and (volunteer.id, day_date) in excluded_meals
+                    ),
                 )
             )
         week_rows.append(

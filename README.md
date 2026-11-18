@@ -6,10 +6,10 @@ personnel sécurisé. Une interface d'administration gère les bénévoles, les 
 horaires d'ouverture et le planning hebdomadaire des réponses.
 
 Le planning affiche une colonne par jour avec deux listes, **Matin** et **Après-midi**,
-où chaque bénévole apparaît avec ses horaires. Les disponibilités « toute la journée »
-apparaissent sur fond vert dans les deux listes. Seuls les bénévoles ayant répondu avec
-une disponibilité apparaissent dans cette vue : les bénévoles sans réponse n'y sont plus
-signalés.
+un créneau **Repas** et les horaires de chacun. Les disponibilités « toute la journée »
+apparaissent sur fond vert dans les deux listes et sont inscrites par défaut au repas de
+12:00–13:00. Seuls les bénévoles ayant répondu avec une disponibilité apparaissent dans
+cette vue : les bénévoles sans réponse n'y sont plus signalés.
 
 La feuille de route fonctionnelle est dans
 [`roadmaps/feuille-de-route-initiale.md`](roadmaps/feuille-de-route-initiale.md) et son
@@ -160,6 +160,9 @@ Il lit les identifiants dans `.env` et ne doit être utilisé qu'en local.
   lien devient invalide).
 - Désactivation : historique conservé, accès au lien refusé. Suppression définitive :
   bénévole, lien et réponses supprimés en cascade.
+- Repas de midi (12:00–13:00) : les bénévoles disponibles toute la journée y sont inscrits
+  par défaut. L'administration peut les retirer avec confirmation et les réinscrire ; les
+  bénévoles ayant seulement un créneau ne sont pas inscrits automatiquement.
 
 ## Sécurité et données
 

@@ -137,6 +137,16 @@ export const api = {
       method: 'POST',
     })
   },
+  excludeVolunteerMeal(id: string, date: string) {
+    return request<void>(`/api/admin/volunteers/${id}/meal-exclusions/${date}`, {
+      method: 'PUT',
+    })
+  },
+  includeVolunteerMeal(id: string, date: string) {
+    return request<void>(`/api/admin/volunteers/${id}/meal-exclusions/${date}`, {
+      method: 'DELETE',
+    })
+  },
 
   // Administration — semaine et horaires
   getWeek(periodStart?: string, includeInactive = false) {

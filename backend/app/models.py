@@ -84,6 +84,9 @@ class Volunteer(Base):
     responses: Mapped[list[AvailabilityResponse]] = relationship(
         back_populates="volunteer", cascade="all, delete-orphan"
     )
+    meal_exclusions: Mapped[list[MealExclusion]] = relationship(
+        back_populates="volunteer", cascade="all, delete-orphan"
+    )
 
 
 class AvailabilityResponse(Base):
@@ -155,6 +158,32 @@ class DayAvailability(Base):
     @property
     def weekday(self) -> int:
         return self.day_date.weekday()
+
+
+class MealExclusion(Base):
+    """Bénévole retiré du repas de midi pour une journée donnée.
+
+    L'absence de ligne signifie que le bénévole est inscrit au repas par défaut
+    lorsqu'il est disponible toute la journée.
+    """
+
+    __tablename__ = "meal_exclusions"
+    __table_args__ = (
+        UniqueConstraint("volunteer_id", "day_date", name="uq_meal_volunteer_date"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    volunteer_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("volunteers.id", ondelete="CASCADE"), index=True
+    )
+    day_date: Mapped[date] = mapped_column(Date, index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, nullable=False
+    )
+
+    volunteer: Mapped[Volunteer] = relationship(back_populates="meal_exclusions")
 
 
 class OpeningHours(Base):

@@ -62,6 +62,7 @@ export interface WeekDay {
   status: WeekStatus
   start: string | null
   end: string | null
+  meal_excluded: boolean
 }
 
 export interface WeekVolunteer {
