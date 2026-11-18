@@ -108,6 +108,21 @@ Vite sert l'interface sur http://localhost:5173 et relaie `/api` vers l'API. Les
 générés utilisent alors `FRONTEND_URL` ; pour qu'ils pointent vers le serveur Vite,
 définissez `FRONTEND_URL=http://localhost:5173` avant de démarrer l'API.
 
+### Données de démonstration
+
+Pour peupler la base avec des bénévoles fictifs et afficher leurs liens personnels :
+
+```bash
+docker compose exec api python -m app.seed_demo
+```
+
+Le script remplace uniquement les bénévoles dont l'adresse se termine par
+`@demo.emmaus.fr`, puis affiche les liens à ouvrir. Les profils couvrent les cas utiles :
+propositions issues de l'historique (Marie), réponses enregistrées et jours clôturés
+(Jean), absence totale de réponse (Fatima), semaine suivante entièrement disponible
+(Paul), créneaux variés (Karim) et bénévole désactivé dont le lien est refusé (Ancien
+Bénévole). Il refuse de s'exécuter si `APP_ENV=production`.
+
 ### Test de fumée Docker
 
 Une fois la pile démarrée, le script suivant vérifie l'API, PostgreSQL et MailHog de bout

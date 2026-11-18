@@ -78,6 +78,8 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
   modification et suppression d'un bénévole, enregistrement d'une disponibilité,
   modification des horaires, création d'un compte administrateur et réinitialisation de
   mot de passe.
+- Jeu de démonstration `app.seed_demo` vérifié sur les cinq profils bénévoles et le cas
+  du lien désactivé ; les liens sont affichés à l'exécution et ne sont pas versionnés.
 
 ## Points d'attention restants
 
