@@ -86,11 +86,15 @@ def test_create_administrator_and_duplicate(client, admin) -> None:
             "email": "seconde@emmaus.fr",
             "password": "SecondCompte-123!",
             "gender": "femme",
+            "first_name": "Camille",
+            "last_name": "Martin",
         },
     )
     assert response.status_code == 201
     assert response.json()["email"] == "seconde@emmaus.fr"
     assert response.json()["gender"] == "femme"
+    assert response.json()["first_name"] == "Camille"
+    assert response.json()["last_name"] == "Martin"
 
     response = client.post(
         "/api/admin/auth/administrators",
@@ -108,6 +112,8 @@ def test_create_administrator_and_duplicate(client, admin) -> None:
 
     assert login(client, "seconde@emmaus.fr", "SecondCompte-123!").status_code == 200
     assert client.get("/api/admin/auth/me").json()["gender"] == "femme"
+    assert client.get("/api/admin/auth/me").json()["first_name"] == "Camille"
+    assert client.get("/api/admin/auth/me").json()["last_name"] == "Martin"
 
 
 def test_create_administrator_requires_strong_password(client, admin) -> None:
@@ -126,11 +132,20 @@ def test_create_administrator_requires_gender(client, admin) -> None:
     assert response.status_code == 422
 
 
-def test_administrator_gender_can_be_updated(client, admin) -> None:
+def test_administrator_gender_and_names_can_be_updated(client, admin) -> None:
+    response = client.patch(
+        "/api/admin/auth/me",
+        json={"first_name": "Pierre", "last_name": "Jaumier"},
+    )
+    assert response.status_code == 200
+    assert response.json()["first_name"] == "Pierre"
+    assert response.json()["last_name"] == "Jaumier"
+
     response = client.patch("/api/admin/auth/me", json={"gender": "femme"})
     assert response.status_code == 200
     assert response.json()["gender"] == "femme"
     assert client.get("/api/admin/auth/me").json()["gender"] == "femme"
+    assert client.get("/api/admin/auth/me").json()["first_name"] == "Pierre"
 
     response = client.patch("/api/admin/auth/me", json={"gender": "autre"})
     assert response.status_code == 422

@@ -22,6 +22,8 @@ class AdminOut(BaseModel):
 
     id: UUID
     email: EmailStr
+    first_name: str | None = None
+    last_name: str | None = None
     gender: Literal["homme", "femme"] | None = None
     last_site: SiteCode | None = None
 
@@ -48,10 +50,14 @@ class CreateAdminIn(BaseModel):
     email: EmailStr
     password: str = Field(min_length=12, max_length=256)
     gender: Literal["homme", "femme"]
+    first_name: str | None = Field(default=None, max_length=80)
+    last_name: str | None = Field(default=None, max_length=80)
 
 
 class UpdateMeIn(BaseModel):
-    gender: Literal["homme", "femme"]
+    gender: Literal["homme", "femme"] | None = None
+    first_name: str | None = Field(default=None, max_length=80)
+    last_name: str | None = Field(default=None, max_length=80)
 
 
 class OpeningHoursOut(BaseModel):

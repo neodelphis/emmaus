@@ -103,7 +103,13 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
     les données restent un créneau continu unique. La sélection des périodes affiche
     deux semaines à la fois : un chevron droit décale la fenêtre, et un chevron gauche
     apparaît dès que la semaine en cours n’est plus visible.
-18. **Planning par demi-journées.** La vue administration présente une carte par jour,
+18. **Identité des administrateurs.** Les champs `first_name` et `last_name` (80
+    caractères, nullable) sont ajoutés sur `admin_users`. Ils sont facultatifs, modifiables
+    dans la page Compte via `PATCH /api/admin/auth/me` et affichés sous le libellé
+    « Connecté » / « Connectée » dans la barre latérale. Le formulaire de création d’un
+    administrateur permet aussi de les renseigner. Les colonnes sont ajoutées aux bases
+    existantes par un `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`.
+19. **Planning par demi-journées.** La vue administration présente une carte par jour,
     avec deux listes : **Matin** (avant 13:00) et **Après-midi** (dès 13:00). Chaque
     bénévole y figure avec ses horaires réels, sans positionnement horaire, afin de rester
     lisible avec une quinzaine de personnes par créneau. Un créneau qui chevauche 13:00
@@ -140,6 +146,8 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
 - Genre administrateur : tests API sur la création avec genre, la modification via `PATCH
   /me`, le refus d'une valeur inconnue et l'affichage conditionnel « Connecté » /
   « Connectée » vérifié dans Chromium.
+- Identité administrateur : tests API sur la modification du prénom et du nom, et
+  vérification Chromium de l’affichage sous « Connecté » dans la barre latérale.
 - Interface bénévole : vérification Chromium des jours clôturés masqués, du bandeau
   d'information retiré, des options Matin/Après-midi empilées et des horaires ajustables.
 - Genre des bénévoles : tests API sur la création, la modification, l'absence de genre

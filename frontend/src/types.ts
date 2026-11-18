@@ -51,6 +51,8 @@ export interface VolunteerAccess {
 export interface AdminUser {
   id: string
   email: string
+  first_name: string | null
+  last_name: string | null
   gender: 'homme' | 'femme' | null
   last_site: SiteCode | null
 }
