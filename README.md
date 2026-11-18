@@ -38,7 +38,7 @@ Prérequis : Docker et Docker Compose.
 cp .env.example .env
 ```
 
-Renseignez dans `.env` :
+Le fichier `.env.example` commente chaque variable. Renseignez dans `.env` :
 
 - `POSTGRES_PASSWORD` : un mot de passe solide ;
 - `SECRET_KEY` : 64 caractères aléatoires (`openssl rand -hex 32`) ;
