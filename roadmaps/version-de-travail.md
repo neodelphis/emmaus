@@ -94,7 +94,13 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
     indisponibles ; les repas sont eux aussi filtrés par site. Les colonnes de site sont
     ajoutées aux bases existantes par des `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` et
     les données historiques sont affectées à Vairé.
-17. **Planning par demi-journées.** La vue administration présente une carte par jour,
+17. **Interface bénévole simplifiée.** L’espace personnel ne montre plus les jours
+    clôturés et le bandeau d’information global a été retiré. Le choix « Créneau » est
+    remplacé par deux options empilées, **Matin** et **Après-midi**, dont les horaires
+    apparaissent et restent ajustables après sélection. Les valeurs initiales sont
+    08:00–12:00 et 14:00–18:00, adaptées aux horaires du site ; les données restent un
+    créneau continu unique.
+18. **Planning par demi-journées.** La vue administration présente une carte par jour,
     avec deux listes : **Matin** (avant 13:00) et **Après-midi** (dès 13:00). Chaque
     bénévole y figure avec ses horaires réels, sans positionnement horaire, afin de rester
     lisible avec une quinzaine de personnes par créneau. Un créneau qui chevauche 13:00
@@ -131,6 +137,8 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
 - Genre administrateur : tests API sur la création avec genre, la modification via `PATCH
   /me`, le refus d'une valeur inconnue et l'affichage conditionnel « Connecté » /
   « Connectée » vérifié dans Chromium.
+- Interface bénévole : vérification Chromium des jours clôturés masqués, du bandeau
+  d'information retiré, des options Matin/Après-midi empilées et des horaires ajustables.
 - Genre des bénévoles : tests API sur la création, la modification, l'absence de genre
   historique et le refus d'une valeur inconnue ; formulaire et badge vérifiés dans
   Chromium.

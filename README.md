@@ -12,6 +12,9 @@ apparaissent sur fond vert dans les deux listes et sont inscrites par défaut au
 cette vue : les bénévoles sans réponse n'y sont plus signalés. L'administration reprend
 par défaut le dernier site qu'elle a consulté.
 
+L'espace personnel du bénévole ne montre que les jours encore modifiables. Il propose
+**Matin** ou **Après-midi**, avec des horaires préremplis que le bénévole peut ajuster.
+
 La feuille de route fonctionnelle est dans
 [`roadmaps/feuille-de-route-initiale.md`](roadmaps/feuille-de-route-initiale.md) et son
 suivi de réalisation dans [`roadmaps/version-de-travail.md`](roadmaps/version-de-travail.md).
@@ -156,8 +159,10 @@ Il lit les identifiants dans `.env` et ne doit être utilisé qu'en local.
 - Deux sites : Vairé et Les Essarts. Chaque bénévole a un site d'affectation par défaut
   et peut choisir l'autre site pour une journée donnée. Une seule disponibilité et un
   seul site sont possibles par jour.
-- Réponse par jour : vide, toute la journée, ou un seul créneau continu par pas de
-  30 minutes, dans les heures d'ouverture du site choisi.
+- Réponse par jour : vide, toute la journée, ou **Matin / Après-midi**. Chaque demi-journée
+  préremplit un créneau continu (08:00–12:00 ou 14:00–18:00, adapté aux horaires du site),
+  que le bénévole peut ajuster par pas de 30 minutes. Les jours clôturés ne sont pas
+  affichés dans son espace personnel.
 - Horaires par défaut 08:00–18:00 du mardi au samedi, propres à chaque site et modifiables
   sans réécrire les réponses existantes.
 - Propositions : créneau le plus fréquent parmi les quatre dernières périodes **achevées**
