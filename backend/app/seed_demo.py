@@ -93,14 +93,35 @@ def seed_demo() -> list[tuple[str, str, bool]]:
         session.commit()
 
         volunteers = {
-            "marie": Volunteer(name="Marie Dupont", email=f"marie.dupont{DEMO_DOMAIN}"),
-            "jean": Volunteer(name="Jean Martin", email=f"jean.martin{DEMO_DOMAIN}"),
-            "fatima": Volunteer(name="Fatima Benali", email=f"fatima.benali{DEMO_DOMAIN}"),
-            "paul": Volunteer(name="Paul Durand", email=f"paul.durand{DEMO_DOMAIN}"),
-            "karim": Volunteer(name="Karim Haddad", email=f"karim.haddad{DEMO_DOMAIN}"),
+            "marie": Volunteer(
+                name="Marie Dupont",
+                email=f"marie.dupont{DEMO_DOMAIN}",
+                gender="femme",
+            ),
+            "jean": Volunteer(
+                name="Jean Martin",
+                email=f"jean.martin{DEMO_DOMAIN}",
+                gender="homme",
+            ),
+            "fatima": Volunteer(
+                name="Fatima Benali",
+                email=f"fatima.benali{DEMO_DOMAIN}",
+                gender="femme",
+            ),
+            "paul": Volunteer(
+                name="Paul Durand",
+                email=f"paul.durand{DEMO_DOMAIN}",
+                gender="homme",
+            ),
+            "karim": Volunteer(
+                name="Karim Haddad",
+                email=f"karim.haddad{DEMO_DOMAIN}",
+                gender="homme",
+            ),
             "ancien": Volunteer(
                 name="Ancien Bénévole",
                 email=f"ancien.benevole{DEMO_DOMAIN}",
+                gender="homme",
                 is_active=False,
             ),
         }

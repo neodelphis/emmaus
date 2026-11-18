@@ -180,6 +180,8 @@ Il lit les identifiants dans `.env` et ne doit être utilisé qu'en local.
 - Le genre du compte administrateur (`homme` ou `femme`) est stocké sur le compte, requis
   à la création et modifiable dans la page Compte ; il détermine le libellé « Connecté »
   ou « Connectée ».
+- Le genre des bénévoles est renseigné dans le formulaire d'administration et stocké sur
+  la fiche. Les fiches existantes sans genre portent le badge « Genre à renseigner ».
 - Les journaux d'accès Uvicorn sont désactivés dans Compose ; les courriels et erreurs ne
   contiennent jamais de mot de passe ni de jeton.
 

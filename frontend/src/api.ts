@@ -116,7 +116,11 @@ export const api = {
   listVolunteers() {
     return request<Volunteer[]>('/api/admin/volunteers')
   },
-  createVolunteer(payload: { name: string; email?: string | null }) {
+  createVolunteer(payload: {
+    name: string
+    email?: string | null
+    gender?: 'homme' | 'femme'
+  }) {
     return request<VolunteerCreated>('/api/admin/volunteers', json(payload))
   },
   updateVolunteer(id: string, payload: VolunteerPayload) {

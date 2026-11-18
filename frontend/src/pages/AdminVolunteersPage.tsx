@@ -22,7 +22,7 @@ import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { EmptyState } from '../components/ui/EmptyState'
-import { Input } from '../components/ui/Input'
+import { Input, Select } from '../components/ui/Input'
 import { Modal } from '../components/ui/Modal'
 import { PageHeader } from '../components/ui/PageHeader'
 import { cn } from '../lib/cn'
@@ -132,6 +132,13 @@ function VolunteerCard({
                 Sans lien
               </Badge>
             )}
+            {volunteer.gender ? (
+              <Badge tone="stone">
+                {volunteer.gender === 'femme' ? 'Femme' : 'Homme'}
+              </Badge>
+            ) : (
+              <Badge tone="amber">Genre à renseigner</Badge>
+            )}
           </div>
           <p className="mt-0.5 truncate text-xs text-stone-400">
             {volunteer.email || 'Sans courriel — lien à transmettre autrement'}
@@ -201,10 +208,17 @@ function VolunteerFormModal({
   open: boolean
   initial: Volunteer | null
   onClose: () => void
-  onSubmit: (name: string, email: string) => Promise<void>
+  onSubmit: (
+    name: string,
+    email: string,
+    gender: 'homme' | 'femme',
+  ) => Promise<void>
 }) {
   const [name, setName] = useState(initial?.name ?? '')
   const [email, setEmail] = useState(initial?.email ?? '')
+  const [gender, setGender] = useState<'homme' | 'femme' | ''>(
+    initial?.gender ?? '',
+  )
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const isEdit = initial !== null
@@ -216,9 +230,13 @@ function VolunteerFormModal({
       setError('Le nom est obligatoire.')
       return
     }
+    if (!gender) {
+      setError('Le genre est obligatoire.')
+      return
+    }
     setLoading(true)
     try {
-      await onSubmit(name.trim(), email.trim())
+      await onSubmit(name.trim(), email.trim(), gender)
     } catch (caught) {
       setError(
         caught instanceof ApiError ? caught.message : 'L’enregistrement a échoué.',
@@ -264,6 +282,19 @@ function VolunteerFormModal({
           placeholder="Marie Dupont"
           autoFocus
         />
+        <Select
+          label="Genre"
+          required
+          value={gender}
+          onChange={(event) =>
+            setGender(event.target.value as 'homme' | 'femme' | '')
+          }
+          hint="Requis pour accorder les messages destinés au bénévole."
+        >
+          <option value="">Sélectionner…</option>
+          <option value="homme">Homme</option>
+          <option value="femme">Femme</option>
+        </Select>
         <Input
           label="Adresse courriel (facultatif)"
           type="email"
@@ -467,18 +498,27 @@ export function AdminVolunteersPage() {
     })
   }
 
-  const handleFormSubmit = async (name: string, email: string) => {
+  const handleFormSubmit = async (
+    name: string,
+    email: string,
+    gender: 'homme' | 'femme',
+  ) => {
     if (form?.mode === 'edit') {
       await api.updateVolunteer(form.volunteer.id, {
         name,
         email: email || null,
+        gender,
       })
       toast.success('Le bénévole a été mis à jour.')
       setForm(null)
       await load()
       return
     }
-    const created = await api.createVolunteer({ name, email: email || null })
+    const created = await api.createVolunteer({
+      name,
+      email: email || null,
+      gender,
+    })
     setForm(null)
     setLinkModal({ name: created.name, link: created.link })
     toast.success('Le bénévole a été ajouté.')

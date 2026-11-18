@@ -110,6 +110,7 @@ class PeriodSaveIn(BaseModel):
 class VolunteerCreateIn(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     email: EmailStr | None = None
+    gender: Literal["homme", "femme"] | None = None
 
     @field_validator("name")
     @classmethod
@@ -123,6 +124,7 @@ class VolunteerCreateIn(BaseModel):
 class VolunteerUpdateIn(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=120)
     email: EmailStr | None = None
+    gender: Literal["homme", "femme"] | None = None
     is_active: bool | None = None
 
     @field_validator("name")
@@ -140,6 +142,7 @@ class VolunteerOut(BaseModel):
     id: UUID
     name: str
     email: EmailStr | None
+    gender: Literal["homme", "femme"] | None = None
     is_active: bool
     has_link: bool
     created_at: datetime
