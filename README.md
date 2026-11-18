@@ -217,6 +217,9 @@ Il lit les identifiants dans `.env` et ne doit être utilisé qu'en local.
   la fiche. Les fiches existantes sans genre portent le badge « Genre à renseigner ».
 - Le prénom et le nom sont saisis séparément dans la fiche bénévole ; le nom complet est
   utilisé dans les plannings, les liens et les courriels.
+- Dans l’espace personnel, chaque jour modifiable affiche en haut à droite le choix du
+  site, présélectionné sur le site par défaut du bénévole, même si la journée est encore
+  marquée « Indisponible ».
 - Le site d'affectation par défaut est stocké sur la fiche bénévole. Le site choisi pour
   chaque disponibilité est conservé séparément ; le planning administrateur et les repas
   sont filtrés par site.
