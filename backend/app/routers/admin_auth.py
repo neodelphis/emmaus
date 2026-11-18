@@ -107,7 +107,13 @@ def update_me(
     admin: AdminUser = Depends(require_admin),
     session: Session = Depends(get_db),
 ) -> AdminOut:
-    admin.gender = payload.gender
+    fields = payload.model_fields_set
+    if "gender" in fields:
+        admin.gender = payload.gender
+    if "first_name" in fields:
+        admin.first_name = payload.first_name.strip() if payload.first_name else None
+    if "last_name" in fields:
+        admin.last_name = payload.last_name.strip() if payload.last_name else None
     session.commit()
     session.refresh(admin)
     return AdminOut.model_validate(admin)
@@ -213,6 +219,8 @@ def create_administrator(
     admin = AdminUser(
         email=email,
         password_hash=hash_password(payload.password),
+        first_name=payload.first_name.strip() if payload.first_name else None,
+        last_name=payload.last_name.strip() if payload.last_name else None,
         gender=payload.gender,
         last_site=DEFAULT_SITE,
     )

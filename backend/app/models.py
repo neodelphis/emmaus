@@ -39,6 +39,8 @@ class AdminUser(Base):
     )
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255))
+    first_name: Mapped[str | None] = mapped_column(String(80))
+    last_name: Mapped[str | None] = mapped_column(String(80))
     gender: Mapped[str | None] = mapped_column(String(8))
     last_site: Mapped[str | None] = mapped_column(String(16))
     created_at: Mapped[datetime] = mapped_column(

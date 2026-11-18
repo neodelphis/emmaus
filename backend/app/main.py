@@ -62,6 +62,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             )
             connection.execute(
                 text(
+                    "ALTER TABLE admin_users "
+                    "ADD COLUMN IF NOT EXISTS first_name VARCHAR(80)"
+                )
+            )
+            connection.execute(
+                text(
+                    "ALTER TABLE admin_users "
+                    "ADD COLUMN IF NOT EXISTS last_name VARCHAR(80)"
+                )
+            )
+            connection.execute(
+                text(
                     "ALTER TABLE volunteers "
                     "ADD COLUMN IF NOT EXISTS default_site VARCHAR(16)"
                 )

@@ -78,6 +78,7 @@ export function AdminLayout() {
   const { user, signOut } = useAuth()
   const location = useLocation()
   const activeItem = navItems.find((item) => location.pathname.startsWith(item.to))
+  const displayName = [user?.first_name, user?.last_name].filter(Boolean).join(' ')
 
   return (
     <div className="min-h-screen bg-stone-100">
@@ -101,7 +102,19 @@ export function AdminLayout() {
           <p className="truncate text-xs text-brand-100/70">
             {user?.gender === 'femme' ? 'Connectée' : 'Connecté'}
           </p>
-          <p className="mt-0.5 truncate text-sm font-medium text-white">{user?.email}</p>
+          {displayName && (
+            <p className="mt-0.5 truncate text-sm font-medium text-white">
+              {displayName}
+            </p>
+          )}
+          <p
+            className={cn(
+              'truncate text-brand-100/70',
+              displayName ? 'mt-0.5 text-xs' : 'mt-0.5 text-sm font-medium text-white',
+            )}
+          >
+            {user?.email}
+          </p>
           <button
             type="button"
             onClick={() => void signOut()}

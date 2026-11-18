@@ -28,13 +28,17 @@ export function AdminAccountPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
+  const [newFirstName, setNewFirstName] = useState('')
+  const [newLastName, setNewLastName] = useState('')
   const [newGender, setNewGender] = useState<'homme' | 'femme' | ''>('')
   const [formError, setFormError] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
+  const [firstName, setFirstName] = useState(user?.first_name ?? '')
+  const [lastName, setLastName] = useState(user?.last_name ?? '')
   const [gender, setGender] = useState<'homme' | 'femme' | ''>(
     user?.gender ?? '',
   )
-  const [savingGender, setSavingGender] = useState(false)
+  const [savingProfile, setSavingProfile] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -57,27 +61,29 @@ export function AdminAccountPage() {
   }, [load])
 
   useEffect(() => {
+    setFirstName(user?.first_name ?? '')
+    setLastName(user?.last_name ?? '')
     setGender(user?.gender ?? '')
-  }, [user?.gender])
+  }, [user?.first_name, user?.last_name, user?.gender])
 
-  const saveGender = async () => {
-    if (!gender) {
-      toast.error('Sélectionnez un genre.')
-      return
-    }
-    setSavingGender(true)
+  const saveProfile = async () => {
+    setSavingProfile(true)
     try {
-      const updated = await api.updateMe(gender)
+      const updated = await api.updateMe({
+        gender: gender || undefined,
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+      })
       signIn(updated)
-      toast.success('Le genre du compte a été mis à jour.')
+      toast.success('Votre profil a été mis à jour.')
     } catch (caught) {
       toast.error(
         caught instanceof ApiError
           ? caught.message
-          : 'Le genre du compte n’a pas pu être enregistré.',
+          : 'Le profil n’a pas pu être enregistré.',
       )
     } finally {
-      setSavingGender(false)
+      setSavingProfile(false)
     }
   }
 
@@ -98,11 +104,19 @@ export function AdminAccountPage() {
     }
     setCreating(true)
     try {
-      await api.createAdministrator(email.trim(), password, newGender)
+      await api.createAdministrator(
+        email.trim(),
+        password,
+        newGender,
+        newFirstName.trim(),
+        newLastName.trim(),
+      )
       toast.success('Le compte administrateur a été créé.')
       setEmail('')
       setPassword('')
       setConfirmation('')
+      setNewFirstName('')
+      setNewLastName('')
       setNewGender('')
       await load()
     } catch (caught) {
@@ -155,7 +169,25 @@ export function AdminAccountPage() {
           </dl>
 
           <div className="mt-4 rounded-xl bg-stone-50 px-3.5 py-3">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input
+                label="Prénom"
+                autoComplete="given-name"
+                maxLength={80}
+                value={firstName}
+                onChange={(event) => setFirstName(event.target.value)}
+                disabled={savingProfile}
+              />
+              <Input
+                label="Nom"
+                autoComplete="family-name"
+                maxLength={80}
+                value={lastName}
+                onChange={(event) => setLastName(event.target.value)}
+                disabled={savingProfile}
+              />
+            </div>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div className="w-full sm:max-w-[12rem]">
                 <label htmlFor="account-gender" className="field-label">
                   Genre
@@ -167,7 +199,7 @@ export function AdminAccountPage() {
                   onChange={(event) =>
                     setGender(event.target.value as 'homme' | 'femme' | '')
                   }
-                  disabled={savingGender}
+                  disabled={savingProfile}
                 >
                   <option value="">Non renseigné</option>
                   <option value="homme">Homme</option>
@@ -177,15 +209,15 @@ export function AdminAccountPage() {
               <Button
                 size="sm"
                 variant="secondary"
-                onClick={() => void saveGender()}
-                loading={savingGender}
-                disabled={!gender || gender === user?.gender}
+                onClick={() => void saveProfile()}
+                loading={savingProfile}
               >
                 Enregistrer
               </Button>
             </div>
             <p className="mt-1 text-[11px] text-stone-400">
-              Utilisé pour l’affichage « Connecté » / « Connectée ».
+              Le prénom et le nom apparaissent sous « Connecté » dans la barre latérale.
+              Le genre détermine « Connecté » / « Connectée ».
             </p>
           </div>
 
@@ -234,6 +266,22 @@ export function AdminAccountPage() {
               onChange={(event) => setEmail(event.target.value)}
               placeholder="collegue@exemple.fr"
             />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input
+                label="Prénom (facultatif)"
+                autoComplete="given-name"
+                maxLength={80}
+                value={newFirstName}
+                onChange={(event) => setNewFirstName(event.target.value)}
+              />
+              <Input
+                label="Nom (facultatif)"
+                autoComplete="family-name"
+                maxLength={80}
+                value={newLastName}
+                onChange={(event) => setNewLastName(event.target.value)}
+              />
+            </div>
             <Select
               label="Genre"
               required

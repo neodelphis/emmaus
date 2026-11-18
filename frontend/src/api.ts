@@ -82,10 +82,14 @@ export const api = {
   me() {
     return request<AdminUser>('/api/admin/auth/me')
   },
-  updateMe(gender: 'homme' | 'femme') {
+  updateMe(payload: {
+    gender?: 'homme' | 'femme'
+    first_name?: string
+    last_name?: string
+  }) {
     return request<AdminUser>('/api/admin/auth/me', {
       method: 'PATCH',
-      body: JSON.stringify({ gender }),
+      body: JSON.stringify(payload),
     })
   },
   updateLastSite(site: SiteCode) {
@@ -113,10 +117,18 @@ export const api = {
     email: string,
     password: string,
     gender: 'homme' | 'femme',
+    firstName?: string,
+    lastName?: string,
   ) {
     return request<AdminUser>(
       '/api/admin/auth/administrators',
-      json({ email, password, gender }),
+      json({
+        email,
+        password,
+        gender,
+        first_name: firstName || undefined,
+        last_name: lastName || undefined,
+      }),
     )
   },
 
