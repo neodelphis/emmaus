@@ -180,21 +180,15 @@ export function DayEditor({
                 period: 'morning' as const,
                 label: 'Matin',
                 icon: Sunrise,
-                preset: morningPreset,
               },
               {
                 period: 'afternoon' as const,
                 label: 'Après-midi',
                 icon: Sunset,
-                preset: afternoonPreset,
               },
             ].map((option) => {
               const Icon = option.icon
               const selected = halfDay === option.period
-              const range =
-                selected && draft.kind === 'slot'
-                  ? { start: draft.start, end: draft.end }
-                  : option.preset
               return (
                 <button
                   key={option.period}
@@ -217,14 +211,6 @@ export function DayEditor({
                       aria-hidden
                     />
                     {option.label}
-                  </span>
-                  <span
-                    className={cn(
-                      'text-[10px] tabular-nums sm:text-[11px]',
-                      selected ? 'text-sky-700' : 'text-stone-400',
-                    )}
-                  >
-                    {range.start} – {range.end}
                   </span>
                 </button>
               )
