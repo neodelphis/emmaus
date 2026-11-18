@@ -149,6 +149,8 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
   la mémorisation du dernier site, le filtrage du planning et l'indépendance des horaires.
 - Jeu de démonstration `app.seed_demo` vérifié sur les cinq profils bénévoles et le cas
   du lien désactivé ; les liens sont affichés à l'exécution et ne sont pas versionnés.
+  Le script crée aussi un compte administrateur normal de démonstration
+  (`admin.test@demo.emmaus.fr`) documenté dans le README.
 - Repas : tests API sur l'inscription par défaut, le retrait, la réinscription et le refus
   pour un jour qui n'est pas « toute la journée ».
 - Genre administrateur : tests API sur la création avec genre, la modification via `PATCH

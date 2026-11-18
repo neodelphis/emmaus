@@ -131,14 +131,28 @@ Pour peupler la base avec des bénévoles fictifs et afficher leurs liens person
 docker compose exec api python -m app.seed_demo
 ```
 
-Le script remplace uniquement les bénévoles dont l'adresse se termine par
-`@demo.emmaus.fr`, puis affiche les liens à ouvrir. Les profils couvrent les cas utiles :
-propositions issues de l'historique (Marie), réponses enregistrées et jours clôturés
-(Jean), absence totale de réponse (Fatima), semaine suivante entièrement disponible
-(Paul), créneaux variés (Karim) et bénévole désactivé dont le lien est refusé (Ancien
-Bénévole). Les profils sont répartis entre Vairé et Les Essarts, et certains jours
-illustrent l'intervention sur l'autre site. Il refuse de s'exécuter si
-`APP_ENV=production`.
+Le script remplace les bénévoles dont l'adresse se termine par `@demo.emmaus.fr`,
+crée ou réinitialise le compte administrateur de démonstration, puis affiche les liens à
+ouvrir. Les profils couvrent les cas utiles : propositions issues de l'historique
+(Marie), réponses enregistrées et jours clôturés (Jean), absence totale de réponse
+(Fatima), semaine suivante entièrement disponible (Paul), créneaux variés (Karim) et
+bénévole désactivé dont le lien est refusé (Ancien Bénévole). Les profils sont répartis
+entre Vairé et Les Essarts, et certains jours illustrent l'intervention sur l'autre site.
+Il refuse de s'exécuter si `APP_ENV=production`.
+
+#### Compte administrateur de démonstration
+
+Pour tester le rôle **Administrateur** standard :
+
+- adresse : `admin.test@demo.emmaus.fr` ;
+- mot de passe : `test-admin-123` ;
+- rôle : **Administrateur** (accès au planning, aux bénévoles et au profil) ;
+- pas d'accès aux horaires ni à la gestion des comptes.
+
+Ce compte est volontairement doté d'un mot de passe simple et reste réservé au
+développement local. Il ne doit jamais être utilisé en production. Le compte
+administrateur principal reste celui défini par `ADMIN_EMAIL` et `ADMIN_PASSWORD`.
+Relancer `seed_demo` réinitialise le mot de passe de ce compte de démonstration.
 
 ### Test de fumée Docker
 
