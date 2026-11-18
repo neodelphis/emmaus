@@ -1,0 +1,10 @@
+import { Loader2 } from 'lucide-react'
+
+export function FullPageLoader({ label = 'Chargement…' }: { label?: string }) {
+  return (
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-stone-500">
+      <Loader2 className="h-7 w-7 animate-spin text-brand-700" aria-hidden />
+      <p className="text-sm">{label}</p>
+    </div>
+  )
+}
