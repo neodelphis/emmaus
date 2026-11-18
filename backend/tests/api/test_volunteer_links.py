@@ -124,6 +124,7 @@ def test_deactivation_preserves_history_but_blocks_access(client, admin) -> None
     assert response.status_code == 200
     row = next(row for row in response.json()["volunteers"] if row["id"] == volunteer["id"])
     assert row["submitted"] is True
+    assert row["is_active"] is False
 
     # Réactivation : l'historique et le lien restent valides.
     client.patch(f"/api/admin/volunteers/{volunteer['id']}", json={"is_active": True})

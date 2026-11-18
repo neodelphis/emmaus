@@ -68,6 +68,7 @@ export interface WeekVolunteer {
   id: string
   name: string
   email: string | null
+  is_active: boolean
   submitted: boolean
   days: WeekDay[]
 }

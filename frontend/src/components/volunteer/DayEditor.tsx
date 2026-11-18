@@ -124,9 +124,11 @@ export function DayEditor({
     <article
       className={cn(
         'rounded-2xl border bg-white p-4 transition sm:p-5',
-        draft.kind === 'unavailable'
-          ? 'border-stone-200'
-          : 'border-brand-200 shadow-[0_0_0_1px_rgba(5,150,105,0.06)]',
+        draft.kind === 'unavailable' && 'border-stone-200',
+        draft.kind === 'all_day' &&
+          'border-brand-200 shadow-[0_0_0_1px_rgba(5,150,105,0.06)]',
+        draft.kind === 'slot' &&
+          'border-sky-200 shadow-[0_0_0_1px_rgba(2,132,199,0.06)]',
       )}
     >
       <fieldset>
@@ -157,7 +159,11 @@ export function DayEditor({
                 className={cn(
                   'flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2.5 text-center text-xs font-medium transition sm:flex-row sm:gap-1.5 sm:text-sm',
                   selected
-                    ? 'border-brand-600 bg-brand-50 text-brand-800 ring-1 ring-inset ring-brand-600/20'
+                    ? option.kind === 'unavailable'
+                      ? 'border-stone-400 bg-stone-100 text-stone-800 ring-1 ring-inset ring-stone-400/25'
+                      : option.kind === 'slot'
+                        ? 'border-sky-600 bg-sky-50 text-sky-800 ring-1 ring-inset ring-sky-600/20'
+                        : 'border-brand-600 bg-brand-50 text-brand-800 ring-1 ring-inset ring-brand-600/20'
                     : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:bg-stone-50',
                 )}
               >
@@ -170,7 +176,13 @@ export function DayEditor({
                   className="sr-only"
                 />
                 <Icon
-                  className={cn('h-4 w-4', selected ? 'text-brand-700' : 'text-stone-400')}
+                  className={cn(
+                    'h-4 w-4',
+                    !selected && 'text-stone-400',
+                    selected && option.kind === 'unavailable' && 'text-stone-600',
+                    selected && option.kind === 'all_day' && 'text-brand-700',
+                    selected && option.kind === 'slot' && 'text-sky-700',
+                  )}
                   aria-hidden
                 />
                 <span className="leading-tight">{option.label}</span>

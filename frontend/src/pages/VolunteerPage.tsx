@@ -428,7 +428,7 @@ export function VolunteerPage() {
             })}
           </div>
 
-          <div className="sticky bottom-0 z-10 -mx-4 mt-5 border-t border-stone-200 bg-white/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
+          <div className="sticky bottom-0 z-10 -mx-4 mt-5 border-t border-stone-200 bg-white/95 px-4 py-3 shadow-[0_-8px_24px_-20px_rgba(0,0,0,0.35)] backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:shadow-none">
             <div className="flex items-center justify-between gap-3 sm:pt-2">
               <p className="text-xs text-stone-500">
                 {dirty

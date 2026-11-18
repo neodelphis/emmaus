@@ -323,6 +323,7 @@ def build_week_view(
                 id=volunteer.id,
                 name=volunteer.name,
                 email=volunteer.email,
+                is_active=volunteer.is_active,
                 submitted=response is not None,
                 days=days,
             )

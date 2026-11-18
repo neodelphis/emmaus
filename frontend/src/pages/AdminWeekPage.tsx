@@ -93,7 +93,10 @@ function VolunteerWeekCard({
             {initials || '?'}
           </span>
           <div className="min-w-0">
-            <p className="truncate font-semibold text-stone-900">{volunteer.name}</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="truncate font-semibold text-stone-900">{volunteer.name}</p>
+              {!volunteer.is_active && <Badge tone="stone">Désactivé</Badge>}
+            </div>
             <p className="truncate text-xs text-stone-400">
               {volunteer.email || 'Sans courriel'}
             </p>

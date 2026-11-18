@@ -159,6 +159,7 @@ class WeekVolunteerOut(BaseModel):
     id: UUID
     name: str
     email: EmailStr | None
+    is_active: bool
     submitted: bool
     days: list[WeekDayOut]
 
