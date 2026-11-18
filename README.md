@@ -175,6 +175,35 @@ Il lit les identifiants dans `.env` et ne doit être utilisé qu'en local.
 - Les journaux d'accès Uvicorn sont désactivés dans Compose ; les courriels et erreurs ne
   contiennent jamais de mot de passe ni de jeton.
 
+## Workflow Git
+
+`main` est la branche stable et ne reçoit jamais de commit direct. Toute modification,
+même documentaire, passe par une branche dédiée puis une pull request :
+
+```bash
+git switch main
+git pull --ff-only origin main
+git switch -c feat/nom-court
+
+# ... modifications, tests et commits ...
+
+git push -u origin feat/nom-court
+gh pr create --base main --head feat/nom-court
+```
+
+Après validation de la pull request, la fusion se fait en squash et la branche est
+supprimée :
+
+```bash
+gh pr merge --squash --delete-branch
+git switch main
+git pull --ff-only origin main
+```
+
+Conventions de nommage : `feat/`, `fix/`, `docs/`, `chore/`, `refactor/`, `test/`.
+Le dépôt distant est [neodelphis/emmaus](https://github.com/neodelphis/emmaus). Le
+modèle de pull request rappelle les vérifications à effectuer.
+
 ## Dépannage navigateur (Firefox)
 
 La politique de sécurité du contenu (CSP) est volontairement stricte : l'application ne
