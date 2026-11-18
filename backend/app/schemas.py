@@ -10,6 +10,7 @@ TimeOfDay = Annotated[time, PlainSerializer(lambda value: value.strftime("%H:%M"
 
 WeekdayNumber = Annotated[int, Field(ge=1, le=5)]
 SiteCode = Literal["vaire", "les-essarts"]
+AdminRole = Literal["admin", "super_admin"]
 
 
 class SiteOut(BaseModel):
@@ -24,6 +25,7 @@ class AdminOut(BaseModel):
     email: EmailStr
     first_name: str | None = None
     last_name: str | None = None
+    role: AdminRole
     gender: Literal["homme", "femme"] | None = None
     last_site: SiteCode | None = None
 
@@ -50,6 +52,7 @@ class CreateAdminIn(BaseModel):
     email: EmailStr
     password: str = Field(min_length=12, max_length=256)
     gender: Literal["homme", "femme"]
+    role: AdminRole = "admin"
     first_name: str | None = Field(default=None, max_length=80)
     last_name: str | None = Field(default=None, max_length=80)
 

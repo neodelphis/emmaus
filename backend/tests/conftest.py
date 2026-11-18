@@ -108,7 +108,33 @@ def admin_credentials() -> tuple[str, str]:
 def admin(client, engine, admin_credentials):
     email, password = admin_credentials
     with Session(engine) as session:
-        session.add(AdminUser(email=email, password_hash=hash_password(password)))
+        session.add(
+            AdminUser(
+                email=email,
+                password_hash=hash_password(password),
+                role="super_admin",
+            )
+        )
+        session.commit()
+    response = client.post(
+        "/api/admin/auth/login", json={"email": email, "password": password}
+    )
+    assert response.status_code == 200, response.text
+    return {"email": email, "password": password, **response.json()}
+
+
+@pytest.fixture
+def regular_admin(client, engine):
+    email = "regular@emmaus.fr"
+    password = "MotDePasseTest-123!"
+    with Session(engine) as session:
+        session.add(
+            AdminUser(
+                email=email,
+                password_hash=hash_password(password),
+                role="admin",
+            )
+        )
         session.commit()
     response = client.post(
         "/api/admin/auth/login", json={"email": email, "password": password}

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.deps import get_db, require_admin
+from app.deps import get_db, require_admin, require_super_admin
 from app.domain.availability import TimeWindow, validate_time_window
 from app.domain.sites import SITES
 from app.models import SiteOpeningHours
@@ -36,7 +36,11 @@ def get_opening_hours(
     return opening_hours_out(load_opening_hours(session, site))
 
 
-@router.put("/{site}/opening-hours", response_model=list[OpeningHoursOut])
+@router.put(
+    "/{site}/opening-hours",
+    response_model=list[OpeningHoursOut],
+    dependencies=[Depends(require_super_admin)],
+)
 def update_opening_hours(
     site: SiteCode,
     payload: OpeningHoursUpdateIn,

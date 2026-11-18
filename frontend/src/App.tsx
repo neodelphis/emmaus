@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth'
 import { ToastProvider } from './toast'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { RequireSuperAdmin } from './components/RequireSuperAdmin'
 import { AdminLayout } from './components/admin/AdminLayout'
 import { AdminLoginPage } from './pages/AdminLoginPage'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
@@ -29,7 +30,14 @@ export default function App() {
                 <Route index element={<Navigate to="semaine" replace />} />
                 <Route path="semaine" element={<AdminWeekPage />} />
                 <Route path="benevoles" element={<AdminVolunteersPage />} />
-                <Route path="horaires" element={<AdminHoursPage />} />
+                <Route
+                  path="horaires"
+                  element={
+                    <RequireSuperAdmin>
+                      <AdminHoursPage />
+                    </RequireSuperAdmin>
+                  }
+                />
                 <Route path="compte" element={<AdminAccountPage />} />
               </Route>
             </Route>

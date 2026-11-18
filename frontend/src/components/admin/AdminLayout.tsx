@@ -77,7 +77,13 @@ function MobileNavItem({ item }: { item: NavItem }) {
 export function AdminLayout() {
   const { user, signOut } = useAuth()
   const location = useLocation()
-  const activeItem = navItems.find((item) => location.pathname.startsWith(item.to))
+  const isSuperAdmin = user?.role === 'super_admin'
+  const visibleNavItems = navItems.filter(
+    (item) => item.to !== '/admin/horaires' || isSuperAdmin,
+  )
+  const activeItem = visibleNavItems.find((item) =>
+    location.pathname.startsWith(item.to),
+  )
   const displayName = [user?.first_name, user?.last_name].filter(Boolean).join(' ')
 
   return (
@@ -94,7 +100,7 @@ export function AdminLayout() {
           <Logo />
         </div>
         <nav className="mt-8 flex flex-1 flex-col gap-1">
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <DesktopNavItem key={item.to} item={item} />
           ))}
         </nav>
@@ -156,7 +162,7 @@ export function AdminLayout() {
       </main>
 
       <nav className="fixed inset-x-0 bottom-0 z-30 flex items-stretch border-t border-stone-200 bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-        {navItems.map((item) => (
+        {visibleNavItems.map((item) => (
           <MobileNavItem key={item.to} item={item} />
         ))}
       </nav>

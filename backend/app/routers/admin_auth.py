@@ -8,7 +8,13 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.config import Settings
-from app.deps import get_db, get_email_service, get_settings, require_admin
+from app.deps import (
+    get_db,
+    get_email_service,
+    get_settings,
+    require_admin,
+    require_super_admin,
+)
 from app.domain.sites import DEFAULT_SITE
 from app.models import AdminUser, PasswordResetToken
 from app.schemas import (
@@ -207,7 +213,7 @@ def reset_password(
 def create_administrator(
     payload: CreateAdminIn,
     session: Session = Depends(get_db),
-    _: AdminUser = Depends(require_admin),
+    _: AdminUser = Depends(require_super_admin),
 ) -> AdminOut:
     email = str(payload.email).lower()
     existing = session.scalar(select(AdminUser).where(AdminUser.email == email))
@@ -221,6 +227,7 @@ def create_administrator(
         password_hash=hash_password(payload.password),
         first_name=payload.first_name.strip() if payload.first_name else None,
         last_name=payload.last_name.strip() if payload.last_name else None,
+        role=payload.role,
         gender=payload.gender,
         last_site=DEFAULT_SITE,
     )
@@ -233,7 +240,7 @@ def create_administrator(
 @router.get("/administrators", response_model=list[AdminOut])
 def list_administrators(
     session: Session = Depends(get_db),
-    _: AdminUser = Depends(require_admin),
+    _: AdminUser = Depends(require_super_admin),
 ) -> list[AdminOut]:
     admins = session.scalars(select(AdminUser).order_by(AdminUser.created_at.asc())).all()
     return [AdminOut.model_validate(admin) for admin in admins]

@@ -79,6 +79,15 @@ def require_admin(
     return admin
 
 
+def require_super_admin(admin: AdminUser = Depends(require_admin)) -> AdminUser:
+    if admin.role != "super_admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cette action est réservée à un administrateur principal.",
+        )
+    return admin
+
+
 def get_volunteer(
     request: Request,
     session: Session = Depends(get_db),

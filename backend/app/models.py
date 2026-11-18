@@ -32,6 +32,10 @@ class AdminUser(Base):
             "last_site IS NULL OR last_site IN ('vaire', 'les-essarts')",
             name="admin_last_site_allowed",
         ),
+        CheckConstraint(
+            "role IN ('admin', 'super_admin')",
+            name="admin_role_allowed",
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -41,6 +45,9 @@ class AdminUser(Base):
     password_hash: Mapped[str] = mapped_column(String(255))
     first_name: Mapped[str | None] = mapped_column(String(80))
     last_name: Mapped[str | None] = mapped_column(String(80))
+    role: Mapped[str] = mapped_column(
+        String(16), default="admin", server_default="admin", nullable=False
+    )
     gender: Mapped[str | None] = mapped_column(String(8))
     last_site: Mapped[str | None] = mapped_column(String(16))
     created_at: Mapped[datetime] = mapped_column(
