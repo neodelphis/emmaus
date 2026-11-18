@@ -1,21 +1,22 @@
 # Feuille de route de travail — V1 locale
 
 Ce document est le suivi opérationnel de la
-[`feuille de route initiale`](feuille-de-route-initiale.md). Il consigne les décisions
+[feuille de route initiale](feuille-de-route-initiale.md). Il consigne les décisions
 d'implémentation, l'avancement et les points en attente. Les règles métier de la feuille
-initiale et de [`AGENTS.md`](../AGENTS.md) restent la référence.
+initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
 
 ## État d'avancement
 
-| Phase | État | Commit de référence |
+| Phase | État | Validation |
 | --- | --- | --- |
-| 0. Socle local et documentation | Terminé | à compléter |
-| 1. Modèle, sécurité et authentification | Terminé | à compléter |
-| 2. API bénévole et règles métier | Terminé | à compléter |
-| 3. API d'administration | Terminé | à compléter |
-| 4. Interface bénévole | En cours | — |
-| 5. Interface d'administration | À faire | — |
-| 6. Validation et finition | À faire | — |
+| 0. Socle local et documentation | Terminé | Docker Compose, README, `.env.example` |
+| 1. Modèle, sécurité et authentification | Terminé | Tests API et unitaires |
+| 2. API bénévole et règles métier | Terminé | Tests périodes, créneaux, propositions |
+| 3. API d'administration | Terminé | Tests liens, semaines, horaires, comptes |
+| 4. Interface bénévole | Terminé | Vérification Chromium mobile et bureau |
+| 5. Interface d'administration | Terminé | Vérification Chromium mobile et bureau |
+| 6. Validation et finition | Terminé | Pile Docker reconstruite depuis un volume vierge |
+| 7. Déploiement distant (hors V1) | Non commencé | À planifier ultérieurement |
 
 ## Décisions d'implémentation
 
@@ -62,23 +63,73 @@ initiale et de [`AGENTS.md`](../AGENTS.md) restent la référence.
 11. **Port hôte PostgreSQL.** Le port `5433` est exposé côté hôte pour cohabiter avec un
     PostgreSQL local ; l'API utilise `db:5432` dans Compose. Toute modification de port
     devra mettre à jour ce document, le README et les configurations.
+12. **Image de build frontend.** Le build utilise `node:24-bookworm-slim` et non Alpine :
+    le binaire natif de Rollup employé par Vite échoue sur musl avec la version actuelle.
+
+## Validation effectuée
+
+- `pytest` : 56 tests backend, exécutés dans le conteneur API avec PostgreSQL.
+- `ruff check app tests` : aucune erreur.
+- `npm run lint` : aucune erreur ni avertissement.
+- `npm run build` : compilation TypeScript et build Vite réussis.
+- `python scripts/smoke_test.py` : API, PostgreSQL, MailHog et Nginx validés de bout en
+  bout sur une pile reconstruite depuis un volume vierge.
+- Vérifications Chromium (bureau et mobile) : connexion, semaine et filtres, création,
+  modification et suppression d'un bénévole, enregistrement d'une disponibilité,
+  modification des horaires, création d'un compte administrateur et réinitialisation de
+  mot de passe.
 
 ## Points d'attention restants
 
-- Vérifier les parcours mobile et ordinateur dans un navigateur (phase 6).
-- Ajouter le test de fumée Docker et l'exécuter sur une pile vierge.
-- Contrôler la documentation OpenAPI et les messages d'erreur en français.
-- Décider si les bénévoles désactivés doivent rester visibles par défaut dans la vue
-  hebdomadaire (actuellement masqués, option `include_inactive` disponible).
-- La rotation de `SECRET_KEY` rend les liens existants illisibles ; elle nécessiterait une
-  régénération assistée. À documenter avant un déploiement futur.
-
-## Validation
-
-Les commandes exactes sont documentées dans le [`README.md`](../README.md) : tests
-pytest avec PostgreSQL, `ruff check`, `npm run lint`, `npm run build` et script de fumée
-Docker.
+- Vérifier la rotation de `SECRET_KEY` : les liens existants restent valides par leur
+  empreinte, mais l'administration ne peut plus les copier ni les renvoyer avant
+  régénération.
+- Ajouter des migrations versionnées (Alembic) avant tout déploiement distant.
+- Décider des limites de sécurité pour un usage hors réseau local (limitation des essais
+  de connexion, en-têtes supplémentaires, sauvegardes).
+- Éventuellement ajouter des tests frontend automatisés (Vitest/Playwright) ; la feuille
+  de route initiale ne demandait que lint et build.
 
 ## Rapport final
 
-À compléter à la fin de la phase 6 (fait, en attente, questions).
+### Fait
+
+- Socle Docker Compose local : PostgreSQL 16, API FastAPI, interface React/Vite servie par
+  Nginx, MailHog, base de test et documentation.
+- Modèle de données complet : administrateurs, jetons de réinitialisation, bénévoles,
+  liens chiffrés, réponses et jours, horaires d'ouverture.
+- Authentification administrateur, comptes multiples, réinitialisation de mot de passe
+  par courriel, invalidation des sessions, premier compte initialisé par `.env`.
+- API et interface bénévole : lien personnel, périodes mardi–samedi, clôture à 23 h 59 la
+  veille, jour vide / toute la journée / créneau de 30 minutes, propositions historiques.
+- Administration : bénévoles, liens (copie, envoi, révocation, régénération), vue
+  hebdomadaire avec non-répondants, filtres par jour, horaires, comptes administrateurs.
+- Validation : 56 tests backend, lint, build, test de fumée Docker et vérifications
+  navigateur mobile/bureau.
+
+### En attente
+
+1. **Interprétation des périodes visibles** : le samedi, la période en cours étant
+   entièrement close, seules les quatre suivantes sont affichées. Confirmez-vous ce
+   comportement, ou faut-il toujours afficher cinq périodes en commençant par la prochaine ?
+2. **Historique des propositions** : seules les périodes **achevées** (samedi antérieur à
+   aujourd'hui) sont utilisées. Confirmez-vous que la période en cours ne doit jamais
+   servir d'historique, même pour préremplir une période future ?
+3. **Bénévoles désactivés** : ils sont masqués par défaut dans la vue hebdomadaire et
+   accessibles via la case « Inclure les bénévoles désactivés ». Ce choix convient-il ?
+4. **Vue historique** : l'administration peut consulter les quatre périodes passées, la
+   période courante et les périodes ouvertes. Faut-il remonter plus loin en V1 ?
+5. **Identité visuelle** : la palette vert Emmaüs / pierre et la mise en page sont à
+   valider avec vous ; les écrans peuvent être ajustés sans impact fonctionnel.
+6. **Sécurité hors réseau local** : la V1 ne limite pas les tentatives de connexion et
+   n'ajoute pas de second facteur. Confirmez-vous que ces sujets restent hors périmètre
+   jusqu'au déploiement distant ?
+7. **Migrations** : faut-il introduire Alembic dès maintenant ou le réserver à la phase de
+   déploiement ?
+8. **Tests frontend** : faut-il ajouter Vitest/Playwright en V1, sachant que la feuille de
+   route initiale ne demandait que lint et build ?
+
+### Informations d'accès locales
+
+Les identifiants du premier administrateur et les secrets locaux sont dans `.env`, qui
+n'est pas versionné. Ils sont créés aléatoirement dans cet environnement de travail.

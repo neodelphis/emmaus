@@ -56,6 +56,10 @@ l'API utilise `db:5432` à l'intérieur du réseau Docker.
 Pour arrêter : `docker compose down`. Pour repartir d'une base vide :
 `docker compose down -v` (destructif).
 
+Le schéma est créé automatiquement au démarrage de l'API (`create_all`). La V1 ne
+contient pas encore de migration Alembic : avant un déploiement avec des données
+persistantes, il faudra introduire des migrations versionnées.
+
 ## Commandes de validation
 
 ### Backend
@@ -91,6 +95,18 @@ npm ci
 npm run lint
 npm run build
 ```
+
+Pour développer l'interface avec rechargement à chaud, en gardant l'API Docker sur le
+port `8000` :
+
+```bash
+cd frontend
+npm run dev
+```
+
+Vite sert l'interface sur http://localhost:5173 et relaie `/api` vers l'API. Les liens
+générés utilisent alors `FRONTEND_URL` ; pour qu'ils pointent vers le serveur Vite,
+définissez `FRONTEND_URL=http://localhost:5173` avant de démarrer l'API.
 
 ### Test de fumée Docker
 
