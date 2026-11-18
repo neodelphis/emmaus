@@ -147,20 +147,18 @@ export function DayEditor({
               {formatDayMonth(day.date)}
             </h3>
           </div>
-          {draft.kind !== 'unavailable' && (
-            <select
-              className="input w-36 shrink-0 bg-white py-1.5 text-xs"
-              aria-label="Site de la journée"
-              value={draft.site}
-              onChange={(event) => changeSite(event.target.value as SiteCode)}
-            >
-              {sites.map((site) => (
-                <option key={site.code} value={site.code}>
-                  {site.name}
-                </option>
-              ))}
-            </select>
-          )}
+          <select
+            className="input w-36 shrink-0 bg-white py-1.5 text-xs"
+            aria-label="Site de la journée"
+            value={draft.site}
+            onChange={(event) => changeSite(event.target.value as SiteCode)}
+          >
+            {sites.map((site) => (
+              <option key={site.code} value={site.code}>
+                {site.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="mt-3 grid grid-cols-3 items-stretch gap-2">
