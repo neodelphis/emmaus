@@ -44,6 +44,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     "ADD COLUMN IF NOT EXISTS gender VARCHAR(8)"
                 )
             )
+            connection.execute(
+                text(
+                    "ALTER TABLE volunteers "
+                    "ADD COLUMN IF NOT EXISTS gender VARCHAR(8)"
+                )
+            )
         with app.state.session_factory() as session:
             ensure_opening_hours(session)
             ensure_first_admin(session, app_settings)

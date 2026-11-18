@@ -70,12 +70,19 @@ class PasswordResetToken(Base):
 
 class Volunteer(Base):
     __tablename__ = "volunteers"
+    __table_args__ = (
+        CheckConstraint(
+            "gender IS NULL OR gender IN ('homme', 'femme')",
+            name="volunteer_gender_allowed",
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     email: Mapped[str | None] = mapped_column(String(255))
+    gender: Mapped[str | None] = mapped_column(String(8))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     # Le jeton n'est jamais stocké en clair : empreinte pour la recherche,
     # copie chiffrée pour permettre à l'administration de renvoyer le lien.

@@ -59,6 +59,7 @@ def _out(volunteer: Volunteer) -> VolunteerOut:
         id=volunteer.id,
         name=volunteer.name,
         email=volunteer.email,
+        gender=volunteer.gender,
         is_active=volunteer.is_active,
         has_link=bool(volunteer.link_token_hash),
         created_at=volunteer.created_at,
@@ -92,6 +93,7 @@ def create_volunteer(
     volunteer = Volunteer(
         name=payload.name.strip(),
         email=str(payload.email).lower() if payload.email else None,
+        gender=payload.gender,
     )
     link = link_service.issue_link(volunteer)
     session.add(volunteer)
@@ -112,6 +114,8 @@ def update_volunteer(
         volunteer.name = payload.name.strip()
     if "email" in fields:
         volunteer.email = str(payload.email).lower() if payload.email else None
+    if "gender" in fields and payload.gender is not None:
+        volunteer.gender = payload.gender
     if "is_active" in fields and payload.is_active is not None:
         volunteer.is_active = payload.is_active
     session.commit()

@@ -46,6 +46,7 @@ export interface Volunteer {
   id: string
   name: string
   email: string | null
+  gender: 'homme' | 'femme' | null
   is_active: boolean
   has_link: boolean
   created_at: string
@@ -100,5 +101,6 @@ export interface DaySavePayload {
 export interface VolunteerPayload {
   name?: string
   email?: string | null
+  gender?: 'homme' | 'femme'
   is_active?: boolean
 }

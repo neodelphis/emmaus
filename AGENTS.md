@@ -35,6 +35,7 @@ La V1 est locale : Docker Compose, PostgreSQL, FastAPI, React/Vite et MailHog. L
 - Réutiliser Tailwind CSS et Lucide React conformément à la feuille de route et aux dépendances réellement présentes.
 - Distinguer visuellement et dans les données les jours indisponibles des bénévoles qui n’ont pas répondu à une période.
 - Le libellé de connexion de l’administration suit le genre du compte (« Connecté » / « Connectée »). Le genre (`homme` / `femme`) est stocké sur le compte, requis à la création et modifiable dans la page Compte.
+- Le genre des bénévoles (`homme` / `femme`) est renseigné dans leur fiche d’administration et stocké pour permettre des accords adaptés dans les futurs messages. Les fiches existantes sans genre sont signalées « Genre à renseigner ».
 
 ## Workflow Git
 
