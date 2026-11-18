@@ -16,6 +16,10 @@ from app.config import Settings
 # Paramètres Argon2 conformes aux recommandations OWASP (19 Mio, 2 passes).
 _password_hasher = PasswordHasher(time_cost=2, memory_cost=19456, parallelism=1)
 
+# Utilisé pour vérifier un mot de passe même lorsque le compte n'existe pas,
+# afin de ne pas révéler l'existence d'une adresse par le temps de réponse.
+DUMMY_PASSWORD_HASH = _password_hasher.hash(secrets.token_urlsafe(24))
+
 SESSION_COOKIE_NAME = "emmaus_admin_session"
 
 

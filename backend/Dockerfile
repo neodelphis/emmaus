@@ -10,7 +10,11 @@ COPY pyproject.toml ./
 COPY app ./app
 COPY tests ./tests
 
-RUN pip install --no-cache-dir ".[dev]"
+RUN pip install --no-cache-dir ".[dev]" \
+    && useradd --create-home --uid 10001 appuser \
+    && chown -R appuser:appuser /app
+
+USER appuser
 
 EXPOSE 8000
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import smtplib
 from email.message import EmailMessage
-from email.utils import formataddr
+from email.utils import formataddr, parseaddr
 
 from app.config import Settings
 
@@ -20,7 +20,10 @@ class EmailService:
 
     def _send(self, *, to: str, subject: str, text: str) -> None:
         message = EmailMessage()
-        message["From"] = formataddr(("Emmaus", self.settings.smtp_from))
+        display_name, address = parseaddr(self.settings.smtp_from)
+        message["From"] = formataddr(
+            (display_name or "Emmaus", address or self.settings.smtp_from)
+        )
         message["To"] = to
         message["Subject"] = subject
         message.set_content(text)

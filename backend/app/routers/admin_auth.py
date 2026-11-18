@@ -19,6 +19,7 @@ from app.schemas import (
     ResetPasswordIn,
 )
 from app.security import (
+    DUMMY_PASSWORD_HASH,
     SESSION_COOKIE_NAME,
     create_session_token,
     generate_token,
@@ -56,7 +57,14 @@ def login(
     admin = session.scalar(
         select(AdminUser).where(AdminUser.email == str(payload.email).lower())
     )
-    if admin is None or not verify_password(payload.password, admin.password_hash):
+    if admin is None:
+        # Coût de vérification équivalent à celui d'un compte existant.
+        verify_password(payload.password, DUMMY_PASSWORD_HASH)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Adresse courriel ou mot de passe incorrect.",
+        )
+    if not verify_password(payload.password, admin.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Adresse courriel ou mot de passe incorrect.",
@@ -125,9 +133,9 @@ def reset_password(
 ) -> Response:
     now = datetime.now(UTC)
     reset_token = session.scalar(
-        select(PasswordResetToken).where(
-            PasswordResetToken.token_hash == hash_token(payload.token)
-        )
+        select(PasswordResetToken)
+        .where(PasswordResetToken.token_hash == hash_token(payload.token))
+        .with_for_update()
     )
     if (
         reset_token is None
