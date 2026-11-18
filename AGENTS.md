@@ -12,7 +12,7 @@ La V1 est locale : Docker Compose, PostgreSQL, FastAPI, React/Vite et MailHog. L
 - Les périodes de service vont du mardi au samedi. Le bénévole peut renseigner la période en cours si elle est encore ouverte et les quatre suivantes.
 - Pour chaque jour, une réponse vide signifie indisponible ; une journée sans soumission reste distincte et doit apparaître comme « sans réponse » côté administration.
 - Une disponibilité quotidienne est soit vide, soit toute la journée, soit un créneau continu unique. Les heures personnalisées suivent un pas de 30 minutes et les bornes d’ouverture configurées.
-- L’interface bénévole n’affiche que les jours encore modifiables. Elle propose **Matin** et **Après-midi** (empilés), avec des horaires préremplis ajustables, au lieu d’un créneau libre.
+- L’interface bénévole n’affiche que les jours encore modifiables. Les choix apparaissent dans cet ordre : **Toute la journée**, puis **Matin** et **Après-midi** (empilés), puis **Indisponible**. Les demi-journées ont des horaires préremplis ajustables, au lieu d’un créneau libre.
 - L’association intervient sur deux sites : **Vairé** (`vaire`) et **Les Essarts** (`les-essarts`). Chaque bénévole a un site d’affectation par défaut ; il peut choisir l’autre site pour une journée, mais une seule disponibilité et un seul site sont possibles par jour.
 - Les heures d’ouverture initiales sont 08:00-18:00 pour chaque site et chaque jour, modifiables par l’administration. Une modification ne réécrit pas les réponses déjà enregistrées.
 - Le planning et les horaires sont propres à chaque site. L’administration reprend par défaut le dernier site qu’elle a consulté.

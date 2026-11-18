@@ -125,11 +125,6 @@ export function DayEditor({
     onChange({ ...draft, start, end })
   }
 
-  const options: { kind: 'unavailable' | 'all_day'; label: string; icon: typeof Sun }[] = [
-    { kind: 'unavailable', label: 'Indisponible', icon: XCircle },
-    { kind: 'all_day', label: 'Toute la journée', icon: Sun },
-  ]
-
   return (
     <article
       className={cn(
@@ -152,44 +147,31 @@ export function DayEditor({
           </h3>
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          {options.map((option) => {
-            const Icon = option.icon
-            const selected = draft.kind === option.kind
-            return (
-              <label
-                key={option.kind}
-                className={cn(
-                  'flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2.5 text-center text-xs font-medium transition sm:flex-row sm:gap-1.5 sm:text-sm',
-                  selected
-                    ? option.kind === 'unavailable'
-                      ? 'border-stone-400 bg-stone-100 text-stone-800 ring-1 ring-inset ring-stone-400/25'
-                      : 'border-brand-600 bg-brand-50 text-brand-800 ring-1 ring-inset ring-brand-600/20'
-                    : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:bg-stone-50',
-                )}
-              >
-                <input
-                  type="radio"
-                  name={`day-${day.date}`}
-                  value={option.kind}
-                  checked={selected}
-                  onChange={() => updateKind(option.kind)}
-                  className="sr-only"
-                />
-                <Icon
-                  className={cn(
-                    'h-4 w-4',
-                    !selected && 'text-stone-400',
-                    selected && option.kind === 'unavailable' && 'text-stone-600',
-                    selected && option.kind === 'all_day' && 'text-brand-700',
-                  )}
-                  aria-hidden
-                />
-                <span className="leading-tight">{option.label}</span>
-              </label>
-            )
-          })}
-        </div>
+        <label
+          className={cn(
+            'mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-xl border px-2 py-2.5 text-sm font-medium transition',
+            draft.kind === 'all_day'
+              ? 'border-brand-600 bg-brand-50 text-brand-800 ring-1 ring-inset ring-brand-600/20'
+              : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:bg-stone-50',
+          )}
+        >
+          <input
+            type="radio"
+            name={`day-${day.date}`}
+            value="all_day"
+            checked={draft.kind === 'all_day'}
+            onChange={() => updateKind('all_day')}
+            className="sr-only"
+          />
+          <Sun
+            className={cn(
+              'h-4 w-4',
+              draft.kind === 'all_day' ? 'text-brand-700' : 'text-stone-400',
+            )}
+            aria-hidden
+          />
+          Toute la journée
+        </label>
 
         <div className="mt-2 grid gap-2">
           {[
@@ -244,6 +226,32 @@ export function DayEditor({
             )
           })}
         </div>
+
+        <label
+          className={cn(
+            'mt-2 flex cursor-pointer items-center justify-center gap-2 rounded-xl border px-2 py-2.5 text-sm font-medium transition',
+            draft.kind === 'unavailable'
+              ? 'border-stone-400 bg-stone-100 text-stone-800 ring-1 ring-inset ring-stone-400/25'
+              : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:bg-stone-50',
+          )}
+        >
+          <input
+            type="radio"
+            name={`day-${day.date}`}
+            value="unavailable"
+            checked={draft.kind === 'unavailable'}
+            onChange={() => updateKind('unavailable')}
+            className="sr-only"
+          />
+          <XCircle
+            className={cn(
+              'h-4 w-4',
+              draft.kind === 'unavailable' ? 'text-stone-600' : 'text-stone-400',
+            )}
+            aria-hidden
+          />
+          Indisponible
+        </label>
 
         {draft.kind !== 'unavailable' && (
           <label className="mt-3 block text-xs font-medium text-stone-600">

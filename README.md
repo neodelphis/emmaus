@@ -12,8 +12,9 @@ apparaissent sur fond vert dans les deux listes et sont inscrites par défaut au
 cette vue : les bénévoles sans réponse n'y sont plus signalés. L'administration reprend
 par défaut le dernier site qu'elle a consulté.
 
-L'espace personnel du bénévole ne montre que les jours encore modifiables. Il propose
-**Matin** ou **Après-midi**, avec des horaires préremplis que le bénévole peut ajuster.
+L'espace personnel du bénévole ne montre que les jours encore modifiables. Les choix
+sont ordonnés ainsi : **Toute la journée**, puis **Matin / Après-midi** empilés, puis
+**Indisponible**. Les horaires des demi-journées sont préremplis et ajustables.
 
 La feuille de route fonctionnelle est dans
 [`roadmaps/feuille-de-route-initiale.md`](roadmaps/feuille-de-route-initiale.md) et son
