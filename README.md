@@ -184,11 +184,13 @@ Si Firefox affiche un message du type « script intégré bloqué (`sandbox eval
 navigateur** (React DevTools, gestionnaire de mots de passe, traducteur, bloqueur de
 publicités, etc.) qui tente d'injecter du code ou d'accéder à un fichier local.
 
-Pour le vérifier : ouvrir Firefox en **mode de dépannage** (menu Aide → Mode de
-dépannage) ou dans un profil neuf, puis recharger la page. Un test de l'administration
-dans un Firefox sans extension ne produit aucun message de ce type. Il ne faut pas
-ajouter `'unsafe-inline'` à la CSP pour faire taire ces avertissements : cela
-affaiblirait la sécurité de l'application.
+Plusieurs bloqueurs de publicités actifs simultanément sont une cause fréquente. Pour
+le vérifier : ouvrir Firefox en **mode de dépannage** (menu Aide → Mode de dépannage),
+désactiver les extensions une par une, ou ajouter `http://localhost:8080` à la liste
+d'autorisation du bloqueur, puis recharger la page. Un test de l'administration dans un
+Firefox sans extension ne produit aucun message de ce type. Il ne faut pas ajouter
+`'unsafe-inline'` à la CSP pour faire taire ces avertissements : cela affaiblirait la
+sécurité de l'application.
 
 ## Structure
 
