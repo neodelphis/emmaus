@@ -133,12 +133,17 @@ docker compose exec api python -m app.seed_demo
 
 Le script remplace les bénévoles dont l'adresse se termine par `@demo.emmaus.fr`,
 crée ou réinitialise le compte administrateur de démonstration, puis affiche les liens à
-ouvrir. Les profils couvrent les cas utiles : propositions issues de l'historique
-(Marie), réponses enregistrées et jours clôturés (Jean), absence totale de réponse
-(Fatima), semaine suivante entièrement disponible (Paul), créneaux variés (Karim) et
-bénévole désactivé dont le lien est refusé (Ancien Bénévole). Les profils sont répartis
-entre Vairé et Les Essarts, et certains jours illustrent l'intervention sur l'autre site.
-Il refuse de s'exécuter si `APP_ENV=production`.
+ouvrir. Le jeu compte une vingtaine de bénévoles (20 actifs et un désactivé), répartis
+entre Vairé et Les Essarts : le samedi de la première période ouverte réunit 15 bénévoles
+à Vairé et le mercredi en réunit 8 aux Essarts, pour vérifier l'affichage des journées
+chargées. Toutes les périodes (historique, période en cours et suivante) sont recalculées
+à partir de la date du jour dans le fuseau `Europe/Paris` : chaque exécution décale les
+données sur la semaine courante. Les profils couvrent aussi les cas utiles : propositions
+issues de l'historique (Marie), réponses enregistrées et jours clôturés (Jean), absence
+totale de réponse (Fatima), semaine suivante entièrement disponible (Paul), créneaux
+variés (Karim) et bénévole désactivé dont le lien est refusé (Ancien Bénévole). Certains
+jours illustrent l'intervention sur l'autre site. Le script affiche un récapitulatif des
+disponibilités par jour et par site. Il refuse de s'exécuter si `APP_ENV=production`.
 
 #### Compte administrateur de démonstration
 
