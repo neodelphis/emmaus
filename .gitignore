@@ -19,6 +19,9 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# Scripts d'alimentation locaux : données personnelles, jamais versionnées
+scripts/local/
+
 # Divers
 .DS_Store
 *.log
