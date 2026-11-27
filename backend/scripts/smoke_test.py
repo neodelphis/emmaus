@@ -5,7 +5,7 @@ Vérifie l'API, PostgreSQL, MailHog et l'interface servie par Nginx :
 connexion administrateur, création d'un bénévole, lien personnel,
 enregistrement d'une disponibilité, envoi du lien et réception dans MailHog.
 
-Usage : python scripts/smoke_test.py
+Usage : python backend/scripts/smoke_test.py
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ import uuid
 from http.cookiejar import CookieJar
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 API_URL = os.environ.get("API_URL", "http://localhost:8000")
 WEB_URL = os.environ.get("WEB_URL", "http://localhost:8080")
 MAILHOG_URL = os.environ.get("MAILHOG_URL", "http://localhost:8025")

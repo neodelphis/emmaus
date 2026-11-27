@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from app.seed_demo import build_demo_plan, seed_demo
+from scripts.seed_demo import build_demo_plan, seed_demo
 
 TODAY = date(2026, 11, 17)  # mardi, aligné sur la fixture « client »
 PERIOD_START = "2026-11-17"

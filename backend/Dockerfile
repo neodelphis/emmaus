@@ -8,6 +8,7 @@ WORKDIR /app
 
 COPY pyproject.toml ./
 COPY app ./app
+COPY scripts ./scripts
 COPY tests ./tests
 
 RUN pip install --no-cache-dir ".[dev]" \

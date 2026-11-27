@@ -61,7 +61,7 @@ jobs:
 
       - name: Vérifier le lint backend
         working-directory: backend
-        run: ruff check app tests
+        run: ruff check app tests scripts
 
       - name: Exécuter les tests backend
         working-directory: backend
