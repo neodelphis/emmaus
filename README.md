@@ -87,7 +87,7 @@ automatiquement par le service `db` au premier démarrage.
 docker compose run --rm api sh -c 'TEST_DATABASE_URL="$TEST_DATABASE_URL" pytest'
 
 # Lint
-docker compose run --rm api ruff check app tests
+docker compose run --rm api ruff check app tests scripts
 ```
 
 En local, avec un environnement Python 3.12 et `TEST_DATABASE_URL` pointant vers
@@ -99,7 +99,7 @@ python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 TEST_DATABASE_URL="postgresql+psycopg://<user>:<motdepasse>@localhost:5433/emmaus_test" \
   pytest
-ruff check app tests
+ruff check app tests scripts
 ```
 
 ### Frontend
@@ -128,7 +128,7 @@ définissez `FRONTEND_URL=http://localhost:5173` avant de démarrer l'API.
 Pour peupler la base avec des bénévoles fictifs et afficher leurs liens personnels :
 
 ```bash
-docker compose exec api python -m app.seed_demo
+docker compose exec api python scripts/seed_demo.py
 ```
 
 Le script remplace les bénévoles dont l'adresse se termine par `@demo.emmaus.fr`,
@@ -166,7 +166,7 @@ en bout (connexion administrateur, création d'un bénévole, envoi du lien, ré
 MailHog) :
 
 ```bash
-python scripts/smoke_test.py
+python backend/scripts/smoke_test.py
 ```
 
 Il lit les identifiants dans `.env` et ne doit être utilisé qu'en local.
@@ -287,11 +287,11 @@ backend/
     services/        liens, courriels, vues et persistance
     models.py        modèle SQLAlchemy
     security.py      hachage, jetons, sessions
+  scripts/           jeu de démonstration et test de fumée Docker
   tests/             tests unitaires et tests d'API sur PostgreSQL
 frontend/
   src/               interface React (parcours bénévole et administration)
 docker/initdb/       création de la base de test
-scripts/             test de fumée Docker
 ```
 
 ## Déploiement staging

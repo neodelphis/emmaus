@@ -2,7 +2,7 @@
 
 À exécuter dans le conteneur API :
 
-    docker compose exec api python -m app.seed_demo
+    docker compose exec api python scripts/seed_demo.py
 
 Le script remplace les bénévoles dont l'adresse se termine par
 ``@demo.emmaus.fr``, crée ou réinitialise un compte administrateur normal de

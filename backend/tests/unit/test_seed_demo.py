@@ -7,7 +7,7 @@ import pytest
 
 from app.domain.periods import period_end, visible_period_starts
 from app.domain.sites import SITE_CODES
-from app.seed_demo import (
+from scripts.seed_demo import (
     DEMO_DOMAIN,
     DEMO_VOLUNTEERS,
     build_demo_plan,

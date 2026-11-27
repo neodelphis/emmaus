@@ -143,11 +143,11 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
 ## Validation effectuée
 
 - `pytest` : 102 tests backend, exécutés dans le conteneur API avec PostgreSQL.
-- `ruff check app tests` : aucune erreur.
+- `ruff check app tests scripts` : aucune erreur.
 - `npm run lint` : aucune erreur ni avertissement.
 - `npm run build` : compilation TypeScript et build Vite réussis.
-- `python scripts/smoke_test.py` : API, PostgreSQL, MailHog et Nginx validés de bout en
-  bout sur une pile reconstruite depuis un volume vierge.
+- `python backend/scripts/smoke_test.py` : API, PostgreSQL, MailHog et Nginx validés
+  de bout en bout sur une pile reconstruite depuis un volume vierge.
 - Vérifications Chromium (bureau et mobile) : connexion, planning par demi-journées,
   filtre par jour, sélecteur mobile, listes denses (16 bénévoles), création,
   modification et suppression d'un bénévole, enregistrement d'une disponibilité,
@@ -158,15 +158,16 @@ initiale et de [AGENTS.md](../AGENTS.md) restent la référence.
 - Création d'un compte administrateur et réinitialisation de mot de passe vérifiées.
 - Sites : tests API sur la liste des sites, le site par défaut, le choix de l'autre site,
   la mémorisation du dernier site, le filtrage du planning et l'indépendance des horaires.
-- Jeu de démonstration `app.seed_demo` : une vingtaine de bénévoles (20 actifs et un
-  désactivé) dont une journée à 15 bénévoles sur un même site, pour vérifier l'affichage
-  des journées chargées. Les périodes (historique, en cours et suivante) sont recalculées
-  à partir de la date du jour. Les profils historiques restent couverts (propositions,
-  réponses enregistrées, sans réponse, semaine suivante disponible, créneaux variés, lien
-  désactivé) et les tests vérifient la densité par jour, l'ancrage sur la date du jour et
-  le respect des pas de 30 minutes. Les liens sont affichés à l'exécution et ne sont pas
-  versionnés. Le script crée aussi un compte administrateur normal de démonstration
-  (`admin.test@demo.emmaus.fr`) documenté dans le README.
+- Jeu de démonstration `backend/scripts/seed_demo.py` : une vingtaine de bénévoles
+  (20 actifs et un désactivé) dont une journée à 15 bénévoles sur un même site, pour
+  vérifier l'affichage des journées chargées. Les périodes (historique, en cours et
+  suivante) sont recalculées à partir de la date du jour. Les profils historiques
+  restent couverts (propositions, réponses enregistrées, sans réponse, semaine suivante
+  disponible, créneaux variés, lien désactivé) et les tests vérifient la densité par
+  jour, l'ancrage sur la date du jour et le respect des pas de 30 minutes. Les liens
+  sont affichés à l'exécution et ne sont pas versionnés. Le script crée aussi un
+  compte administrateur normal de démonstration (`admin.test@demo.emmaus.fr`)
+  documenté dans le README.
 - Repas : tests API sur l'inscription par défaut, le retrait, la réinscription et le refus
   pour un jour qui n'est pas « toute la journée ».
 - Genre administrateur : tests API sur la création avec genre, la modification via `PATCH
